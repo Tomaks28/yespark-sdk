@@ -1,0 +1,3631 @@
+{
+  "info": {
+    "title": "Yespark Group Partner API",
+    "version": "1",
+    "description": "Zenpark has joined Yespark Group in 2025. This API documentation allows you to:\n\n- search for parking spaces\n- manage your users\n- manage your reservations\n\nSee the [Changelog](#tag/changelog) for a history of breaking changes and additions.\n\n# Requests\n\nThe API adheres to REST principles:\n\n- `GET` requests: read data without modification\n- `POST` requests: create a new resource\n- `PATCH` requests: update an existing resource\n- `DELETE` requests: delete a resource\n\nParameters for `GET` requests must be sent via the query string.\n\nParameters for `POST` requests must be included in the request body as valid JSON and must have the `Content-Type: application/json` header.\n\nParameter formats:\n\n- `DATE`: \"YYYY-MM-DD\" (e.g., \"2021-10-21\")\n- `TIME`: H:m[:s] (e.g., \"10:30\")\n- `DATETIME`: \"YYYY-MM-DDTHH:mm:ss\" (e.g., \"2025-07-25T07:46:56\")\n\n# Endpoints\n\nFor the production version, requests must be sent to `https://developers.zenpark.com`.\n\nFor the demo version, requests must be sent to `https://developers-preprod-env.zenpark.com`.\n\n# Authentication\n\nThe API uses a token-based authentication system.\n\nTo authenticate, you need to provide a valid API key in the `Authorization` header of your request. You must use the `Bearer` scheme.\n\nThe API key is provided by Yespark Group.\n\n# Serialization\n\nThe API only supports JSON. All API responses will have the `Content-Type: application/json` header, and the response body will contain JSON content to be deserialized.\n\n# List Pagination\n\nMost endpoints returning lists are paginated. Any endpoint returning a list may return an empty list.\n\n## Parameters\n\nThe optional `pagination.pageNumber` parameter allows you to access a specific page. Unless otherwise specified, each page contains 20 items.\n\n## Response\n\nThe response also contains a `pagination` object indicating the total number of pages and items, for example:\n\n```json\n{\n  […],\n  \"pagination\": {\n    \"sortField\": \"UserName\",\n    \"sortDirection\": \"asc\",\n    \"pageNumber\": 1,\n    \"pageSize\": 20,\n    \"totalCount\": 34,\n    \"totalPages\": 2\n  }\n}\n```\n\n# Return Codes\n\nThe API may return the following status codes:\n\n| Code  | Nom                   | Description                                                                      |\n| ----  | --------              | --------                                                                         |\n| `200` | Success               | Success                                                                          |\n| `400` | Bad Request           | The request is invalid                                                           |\n| `401` | Unauthorized          | Authentication failed                                                            |\n| `403` | Forbidden             | Insufficient rights to perform the requested action                              |\n| `404` | Not Found             | The resource is not found                                                        |\n| `422` | Unprocessable Entity  | The data sent is malformatted                                                    |\n| `429` | Too Many Requests     | Too many requests have been made                                                 |\n| `500` | Internal Server Error | An internal server error occurred (the technical team is notified automatically) |\n\n# Errors\n\nFor errors recognized by the system (e.g., 422 errors), the response will include the following fields to inform you about the issues:\n\n- `errorCode` : a machine-readable error name (e.g., `USER_NOT_FOUND`)\n- `message` : a human-readable error message (e.g., `User not found`)\n"
+  },
+  "tags": [
+    {
+      "name": "Changelog",
+      "description": "- 2023-07-22: Initial version\n- 2025-06-11: The API has been migrated to the Yespark Group platform. Hence, some endpoints may have changed, but the API is still compatible with the previous version.\n- 2025-08-27: In the `POST /api/partner/members` endpoint, the `firstName`, `lastName`, `email`, `phoneNumber` parameters are now optional. Only the `userId` parameter is required.\n- 2025-10-07: A new `/api/partner/parkings/:id/accesses` endpoint has been added to return all accesses of a parking. Also, the `accessInformation` content field has been sanitized to remove HTML tags.\n- 2025-10-14: In the `POST /api/partner/reservations/reserve` endpoint, the `serviceFee` and `amount` parameters have been added to allow the partner to set the service fee and the total price that the customer pays to the partner.\n- 2026-05-07: A new public **Embed Widget** has been added (`/embed/search`). It allows third-party websites to embed a parking search iframe without authentication. See the *Embed Widget* document.\n\n### 2025-06-11\n\n- The API path have changed from `/api/v3/` to `/api/partner/`. The legacy `/api/v3/` is still working through a Cloudflare worker transformation.\n- Authentication method has changed. The API key is now provided by Yespark Group. Your account has a unique API key that you can find in the answer of the `/api/partner/auth` endpoint. The `/api/partner/auth/refresh` is now deprecated and not documented. It still works but returns the same result as the `/api/partner/auth` endpoint. You don't need to call the auth endpoint before each request.\n- The following endpoints have been deprecated and are not documented:\n  - `/api/partner/user_groups` as the backend logic is not used anymore\n  - `/api/partner/search/subscriptions` as the backend logic was never used, but could be used in the future\n- The `/api/partner/overtimes` endpoint has not been implemented yet, but it will be implemented in the next version.\n\n### 2025-10-07\n\nA new endpoint, `/api/partner/parkings/:id/accesses`, has been introduced to provide a comprehensive list of all accesses associated with a specific parking facility. This enhancement enables your application to display parking accesses exactly as they are configured in our backend, offering a more accurate and detailed representation compared to the previous summary fields (`CarEntry`, `CarExit`, and `Pedestrian`).\n\nEach access object includes an `id` (an integer corresponding to our database identifier), a `name`, and a `kind`. The `kind` attribute can be one of the following values: `car_entry`, `car_exit`, or `pedestrian`.\n\nWhen calling `/api/partner/parkings/:id/open-door`, the `accessId` parameter can be used to specify the access to open. If `accessId` is provided, the `openingReason` parameter is ignored.\n\nAlso, in the `POST /api/partner/reservations` endpoint, the `accessInformation` content field has been sanitized to remove HTML tags.\n\n### 2025-10-14\n\nIn the `POST /api/partner/reservations/reserve` endpoint, the `serviceFee` and `amount` parameters have been added to allow the partner to set the service fee and the total price that the customer pays to the partner.\n\nIn the response, the `serviceFee` has been added alongside `amount` to return the service fee that the customer pays to the partner.\n"
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Documentation",
+      "tags": [
+        "Changelog"
+      ]
+    },
+    {
+      "name": "API",
+      "tags": [
+        "Authentication",
+        "Search",
+        "Parkings",
+        "Members",
+        "Reservations",
+        "Accesses",
+        "Overtimes"
+      ]
+    }
+  ],
+  "openapi": "3.0.1",
+  "servers": [
+    {
+      "url": "https://developers-preprod-env.zenpark.com",
+      "description": "Sandbox"
+    },
+    {
+      "url": "https://developers.zenpark.com",
+      "description": "Production"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "Bearer key necessary to use API calls",
+        "scheme": "bearer",
+        "bearerFormat": "Bearer"
+      }
+    },
+    "schemas": {
+      "AccessInformationModel": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/AccessInformationType"
+          },
+          "content": {
+            "type": "string",
+            "nullable": true,
+            "example": "Pour entrer à pied : par le hall de l'hôtel Pullman Paris La Défense - 11 Avenue de l'Arche. Pour sortir à pied : Sortie : suivre la signalétique de l'hôtel. Un seul cheminement piéton est équipé pour les utilisateurs Zenpark. Merci de respecter les consignes ci-dessus, au risque d'être bloqué dans le parking."
+          }
+        }
+      },
+      "AccessInformationType": {
+        "type": "string",
+        "enum": [
+          "CarEntry",
+          "CarExit",
+          "Pedestrian"
+        ]
+      },
+      "AccessResponseModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 123
+          },
+          "name": {
+            "type": "string",
+            "example": "Entrée voiture"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "car_entry",
+              "car_exit",
+              "pedestrian"
+            ]
+          }
+        }
+      },
+      "AccessTypes": {
+        "type": "string",
+        "description": "Comma separated list of access types: Zenpass, Application, Keypad, Ticket, Receptionist, External, QRCode, Anpr"
+      },
+      "AddressModel": {
+        "type": "object",
+        "properties": {
+          "street": {
+            "type": "string"
+          },
+          "postcode": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          }
+        }
+      },
+      "AvailabilityModel": {
+        "type": "object",
+        "properties": {
+          "reservation": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Returns 1 if the parking is available for reservation, 0 otherwise"
+          }
+        }
+      },
+      "CharacteristicsModel": {
+        "type": "object",
+        "properties": {
+          "maxHeight": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "indoor": {
+            "type": "boolean"
+          },
+          "outdoor": {
+            "type": "boolean"
+          },
+          "underground": {
+            "type": "boolean"
+          },
+          "easyManoeuvre": {
+            "type": "boolean"
+          },
+          "lift": {
+            "type": "boolean"
+          },
+          "reducedMobilityFriendly": {
+            "type": "boolean"
+          },
+          "videosurveillance": {
+            "type": "boolean"
+          },
+          "buildingManager": {
+            "type": "boolean"
+          },
+          "toilets": {
+            "type": "boolean"
+          },
+          "multipleEntriesExits": {
+            "type": "boolean"
+          },
+          "extensionAvaible": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ErrorResponseModel": {
+        "type": "object",
+        "properties": {
+          "errorCode": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "GeoRectangleModel": {
+        "type": "object",
+        "required": [
+          "eastLongitude",
+          "northLatitude",
+          "southLatitude",
+          "westLongitude"
+        ],
+        "properties": {
+          "northLatitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "westLongitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "southLatitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "eastLongitude": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ListResponseAccesses": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/AccessResponseModel"
+        }
+      },
+      "ListResponseMemberDetailsMemberListSort": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberDetailsResponseModel"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationResponseMemberListSort"
+          }
+        }
+      },
+      "ListResponseOvertimeOvertimeListSort": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OvertimeResponseModel"
+            },
+            "nullable": true
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationResponseOvertimeListSort"
+          }
+        }
+      },
+      "ListResponseParkingPositionParkingListSort": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParkingPositionResponseModel"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationResponseParkingListSort"
+          }
+        }
+      },
+      "ListResponseReservationReservationSearchSort": {
+        "type": "object",
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservationResponseModel"
+            },
+            "nullable": true
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationResponseReservationSearchSort"
+          }
+        }
+      },
+      "LocationModel": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "LoginRequestModel": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResponseModel": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer"
+          }
+        }
+      },
+      "MemberCreateRequestModel": {
+        "type": "object",
+        "required": [
+          "userId"
+        ],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "nullable": false,
+            "description": "Required"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Optional",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Optional",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Optional",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "Optional",
+            "nullable": true
+          },
+          "registrationPlates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegistrationPlateModel"
+            },
+            "nullable": true
+          },
+          "optinZenpark": {
+            "type": "boolean",
+            "description": "if true, Zenpark may contact the member for marketing purpose"
+          },
+          "optinAppNotification": {
+            "type": "boolean",
+            "description": "if true, Zenpark will contact the member for applicative purpose (new reservation email, new account created, etc)"
+          }
+        }
+      },
+      "MemberDetailsResponseModel": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "passCode": {
+            "description": "Personal access code for the member. You may add * or # at the end of the code for pedestrian or car access, respectively.",
+            "type": "string",
+            "nullable": true
+          },
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationPlates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegistrationPlateModel"
+            },
+            "nullable": true
+          },
+          "optinZenpark": {
+            "type": "boolean",
+            "description": "if true, Zenpark may contact the member for marketing purpose"
+          },
+          "optinAppNotification": {
+            "type": "boolean",
+            "description": "if true, Zenpark will contact the member for applicative purpose (new reservation email, new account created, etc)"
+          }
+        }
+      },
+      "MemberFields": {
+        "type": "string",
+        "enum": [
+          "RegistrationPlates"
+        ]
+      },
+      "MemberListSort": {
+        "type": "string",
+        "enum": [
+          "UserName"
+        ]
+      },
+      "MemberModifyRequestModel": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastName": {
+            "type": "string",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "type": "string",
+            "nullable": true
+          },
+          "registrationPlates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegistrationPlateModel"
+            },
+            "nullable": true
+          },
+          "optinZenpark": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "if true, Zenpark may contact the member for marketing purpose"
+          },
+          "optinAppNotification": {
+            "type": "boolean",
+            "nullable": true,
+            "description": "if true, Zenpark will contact the member for applicative purpose (new reservation email, new account created, etc)"
+          }
+        }
+      },
+      "OpenDoorRequestModel": {
+        "required": [
+          "userId"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "openingReason": {
+            "$ref": "#/components/schemas/OpeningReasons"
+          },
+          "accessId": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "OpeningReasons": {
+        "type": "string",
+        "enum": [
+          "CarEntry",
+          "CarExit",
+          "Pedestrian"
+        ]
+      },
+      "OvertimeListSort": {
+        "type": "string",
+        "enum": [
+          "BeginDate",
+          "EndDate"
+        ]
+      },
+      "OvertimeResponseModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "parkingId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "beginDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "generationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "PaginationModelParkingSearchSort": {
+        "type": "object",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/ParkingSearchSort"
+          },
+          "sortDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationResponseMemberListSort": {
+        "type": "object",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/MemberListSort"
+          },
+          "sortDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalResults": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationResponseOvertimeListSort": {
+        "type": "object",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/OvertimeListSort"
+          },
+          "sortDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalResults": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationResponseParkingListSort": {
+        "type": "object",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/ParkingListSort"
+          },
+          "sortDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalResults": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationResponseReservationSearchSort": {
+        "type": "object",
+        "properties": {
+          "sortField": {
+            "$ref": "#/components/schemas/ReservationSearchSort"
+          },
+          "sortDirection": {
+            "$ref": "#/components/schemas/PaginationSortDirectionResponse"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalResults": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PaginationSortDirectionResponse": {
+        "type": "string",
+        "enum": [
+          "asc",
+          "desc"
+        ]
+      },
+      "ParkingDetailResponseModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "url": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationModel"
+          },
+          "localizeParking": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressModel"
+          },
+          "accessTypes": {
+            "$ref": "#/components/schemas/AccessTypes"
+          },
+          "vehicleTypes": {
+            "$ref": "#/components/schemas/VehicleTypes"
+          },
+          "characteristics": {
+            "$ref": "#/components/schemas/CharacteristicsModel"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/AvailabilityModel"
+          },
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionPricingPlanModel"
+            },
+            "nullable": true
+          },
+          "reservationPrices": {
+            "$ref": "#/components/schemas/ParkingReservationPricingInfoResponseModel"
+          },
+          "reservationWarning": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ParkingFields": {
+        "type": "string",
+        "description": "Comma separated list of fields to include in the response: AccessTypes,Address,Availability,Characteristics,Description,Photos,ReservationPrices,Subscriptions,VehicleTypes",
+        "example": "AccessTypes,Address,Availability,Characteristics,Description,Photos,ReservationPrices,Subscriptions,VehicleTypes"
+      },
+      "ParkingListSort": {
+        "type": "string",
+        "enum": [
+          "ParkingName"
+        ]
+      },
+      "ParkingPositionResponseModel": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/LocationModel"
+          },
+          "localizeParking": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressModel"
+          },
+          "accessTypes": {
+            "$ref": "#/components/schemas/AccessTypes"
+          },
+          "vehicleTypes": {
+            "$ref": "#/components/schemas/VehicleTypes"
+          },
+          "characteristics": {
+            "$ref": "#/components/schemas/CharacteristicsModel"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/AvailabilityModel"
+          },
+          "subscriptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionPricingPlanModel"
+            }
+          },
+          "reservationPrices": {
+            "$ref": "#/components/schemas/ParkingReservationPricingInfoResponseModel"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "url",
+          "location",
+          "address"
+        ]
+      },
+      "ParkingReservationPricingInfoResponseModel": {
+        "type": "object",
+        "properties": {
+          "oneHourPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "twoHoursPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "oneDayPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "oneWeekPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "oneMonthPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "ParkingSearchSort": {
+        "type": "string",
+        "enum": [
+          "Distance",
+          "Price"
+        ]
+      },
+      "RefreshTokenRequestModel": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        }
+      },
+      "RegistrationPlateModel": {
+        "type": "object",
+        "properties": {
+          "countryCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "plateNumber": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReservationCancellationInformationResponseModel": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "isPossible": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReservationCancellationResponseModel": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "cancellationDate": {
+            "type": "string",
+            "format": "date_time",
+            "nullable": true
+          },
+          "cancellationAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "ReservationExtensionInformationResponseModel": {
+        "type": "object",
+        "properties": {
+          "amount": {
+            "type": "number",
+            "format": "double"
+          },
+          "isPossible": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReservationRequestModel": {
+        "type": "object",
+        "required": [
+          "beginDate",
+          "endDate",
+          "parkingId",
+          "userId"
+        ],
+        "properties": {
+          "parkingId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string"
+          },
+          "beginDate": {
+            "type": "string",
+            "format": "date_time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date_time"
+          },
+          "registrationPlates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegistrationPlateModel"
+            }
+          },
+          "serviceFee": {
+            "type": "number",
+            "format": "double",
+            "description": "Service fee that the partner earns from the reservation"
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "description": "Total price that the customer pays to the partner"
+          }
+        }
+      },
+      "ReservationResponseModel": {
+        "type": "object",
+        "properties": {
+          "number": {
+            "type": "string",
+            "nullable": true
+          },
+          "parkingId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "nullable": true
+          },
+          "creationDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "beginDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastExtensionCreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancellationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "registrationPlates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RegistrationPlateModel"
+            },
+            "nullable": true
+          },
+          "amount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Total price that the customer pays to the partner"
+          },
+          "serviceFee": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "description": "Service fee that the partner earns from the reservation"
+          },
+          "accessInformation": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccessInformationModel"
+            },
+            "nullable": true
+          },
+          "openingReasonsAvailable": {
+            "$ref": "#/components/schemas/OpeningReasons"
+          },
+          "extendable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReservationSearchResultModel": {
+        "type": "object",
+        "properties": {
+          "parking": {
+            "$ref": "#/components/schemas/ParkingDetailResponseModel"
+          },
+          "travelTime": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "distance": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "description": "Distance in kilometers"
+          },
+          "parkingAlmostFull": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "ReservationSearchSort": {
+        "type": "string",
+        "enum": [
+          "BeginDate",
+          "EndDate"
+        ]
+      },
+      "SearchAvailableSpacesLocationModel": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "locationBounds": {
+            "$ref": "#/components/schemas/GeoRectangleModel"
+          }
+        }
+      },
+      "SearchSpaceRequestModel": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "$ref": "#/components/schemas/SearchAvailableSpacesLocationModel"
+          },
+          "vehicleTypes": {
+            "$ref": "#/components/schemas/VehicleTypes"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationModelParkingSearchSort"
+          },
+          "beginDate": {
+            "type": "string",
+            "format": "date_time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date_time"
+          }
+        }
+      },
+      "SearchSpaceResponseModel": {
+        "type": "object",
+        "properties": {
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "searchRequestId": {
+            "type": "string"
+          },
+          "searchResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReservationSearchResultModel"
+            }
+          }
+        }
+      },
+      "SubscriptionPricingPlanModel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "monthlyPrice": {
+            "type": "number",
+            "format": "double"
+          },
+          "firstMonthPrice": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "minMonthCommitment": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "VehicleTypes": {
+        "type": "string",
+        "description": "Comma separated list of vehicle types: Moto, Small, Medium, Large, Tall, VeryTall"
+      }
+    }
+  },
+  "paths": {
+    "/api/partner/parkings/{id}/accesses": {
+      "get": {
+        "summary": "Get all accesses of a parking",
+        "tags": [
+          "Accesses"
+        ],
+        "description": "This endpoint will allow you to consult accesses of a specific parking.",
+        "operationId": "AccessesGetAccessesList",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Parking ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns all accesses",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns all accesses": {
+                    "value": [
+                      {
+                        "id": 43,
+                        "name": "Entrée voiture",
+                        "kind": "car_entry"
+                      }
+                    ]
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseAccesses"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/auth": {
+      "post": {
+        "summary": "Authenticate yourself and returns your access token",
+        "tags": [
+          "Authentication"
+        ],
+        "description": "The returned accessToken is needed to authenticate each of your api calls (excepted those to get an access token). To authenticate, please add the accessToken in your request's header 'Authorization'. Prefixed the access token with 'Bearer'. eg. Authorization: Bearer youraccesstokenreturnedinthisendpoint",
+        "operationId": "AuthLogin",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "returns an object with an access token",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns an object with an access token": {
+                    "value": {
+                      "accessToken": "ixZzezMm4DyzYo",
+                      "refreshToken": "ixZzezMm4DyzYo",
+                      "expiresIn": 31556952
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns INVALID_PARAMETER_VALUE",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns INVALID_PARAMETER_VALUE": {
+                    "value": {
+                      "errorCode": "INVALID_PARAMETER_VALUE",
+                      "message": "The given credentials are invalid. Please check and try again. If the problem persists, contact us."
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "returns SIGNIN_ERROR",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns SIGNIN_ERROR": {
+                    "value": {
+                      "errorCode": "SIGNIN_ERROR",
+                      "message": "Email ou mot de passe incorrect."
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequestModel"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/partner/members": {
+      "post": {
+        "summary": "Create a member and associates it to your account",
+        "tags": [
+          "Members"
+        ],
+        "description": "Create a member and associates it to your account.",
+        "operationId": "MembersCreateMember",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "when no PII is provided",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns member details": {
+                    "value": {
+                      "userId": "partner-123",
+                      "passCode": "33490974",
+                      "firstName": "John",
+                      "lastName": "Doe",
+                      "email": "client-api-partenaire+partner-123@yespark.fr",
+                      "phoneNumber": "33671324534",
+                      "optinZenpark": false,
+                      "optinAppNotification": false,
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AA789ZZ"
+                        }
+                      ]
+                    }
+                  },
+                  "when no PII is provided": {
+                    "value": {
+                      "userId": "partner-123",
+                      "passCode": "87457740",
+                      "firstName": null,
+                      "lastName": null,
+                      "email": "client-api-partenaire+partner-123@yespark.fr",
+                      "phoneNumber": null,
+                      "optinZenpark": false,
+                      "optinAppNotification": false,
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AA789ZZ"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetailsResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns DUPLICATE_USER_ID",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns DUPLICATE_USER_ID": {
+                    "value": {
+                      "errorCode": "DUPLICATE_USER_ID",
+                      "message": "User already exists with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberCreateRequestModel"
+              }
+            }
+          },
+          "required": true
+        }
+      },
+      "get": {
+        "summary": "Get a paginated list of your members",
+        "tags": [
+          "Members"
+        ],
+        "description": "View all members attached to your account.",
+        "operationId": "MembersGetMemberList",
+        "parameters": [
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/MemberFields"
+            }
+          },
+          {
+            "name": "pagination.sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/MemberListSort"
+            }
+          },
+          {
+            "name": "pagination.sortDirection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PaginationSortDirectionResponse"
+            }
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pagination.pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns registration plates",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns all members": {
+                    "value": {
+                      "results": [
+                        {
+                          "userId": "p-123",
+                          "passCode": null,
+                          "firstName": "First_name2",
+                          "lastName": "Last_name2",
+                          "email": "email2@gmail.com",
+                          "phoneNumber": null,
+                          "optinZenpark": false,
+                          "optinAppNotification": false
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "UserName",
+                        "sortDirection": "asc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  },
+                  "returns registration plates": {
+                    "value": {
+                      "results": [
+                        {
+                          "userId": "p-123",
+                          "passCode": null,
+                          "firstName": "First_name2",
+                          "lastName": "Last_name2",
+                          "email": "email2@gmail.com",
+                          "phoneNumber": null,
+                          "optinZenpark": false,
+                          "optinAppNotification": false,
+                          "registrationPlates": [
+                            {
+                              "countryCode": "FR",
+                              "plateNumber": "AB001YZ"
+                            }
+                          ]
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "UserName",
+                        "sortDirection": "asc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseMemberDetailsMemberListSort"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/members/{userId}": {
+      "delete": {
+        "summary": "Delete a member",
+        "tags": [
+          "Members"
+        ],
+        "description": "Delete a member from your account.",
+        "operationId": "MembersDeleteMember",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns success",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns success": {
+                    "value": {}
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "returns NOT_ENOUGH_RIGHTS",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns NOT_ENOUGH_RIGHTS": {
+                    "value": {
+                      "errorCode": "NOT_ENOUGH_RIGHTS",
+                      "message": "The user can't be deleted. Please try again. If the problem persists, contact us."
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns USER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns USER_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "USER_NOT_FOUND",
+                      "message": "User was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "Get a member information",
+        "tags": [
+          "Members"
+        ],
+        "description": "View a member details.",
+        "operationId": "MembersGetMember",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns member details",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns member details": {
+                    "value": {
+                      "userId": "p-123",
+                      "passCode": null,
+                      "firstName": "First_name2",
+                      "lastName": "Last_name2",
+                      "email": "email2@gmail.com",
+                      "phoneNumber": null,
+                      "optinZenpark": false,
+                      "optinAppNotification": false,
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AB001YZ"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetailsResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns USER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns USER_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "USER_NOT_FOUND",
+                      "message": "User was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update a member",
+        "tags": [
+          "Members"
+        ],
+        "description": "Update a member details.",
+        "operationId": "MembersUpdateMember",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "create phone number and registration plate",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns user with updated information": {
+                    "value": {
+                      "userId": "p-123",
+                      "passCode": null,
+                      "firstName": "John",
+                      "lastName": "Doe",
+                      "email": "email2@gmail.com",
+                      "phoneNumber": "33671324534",
+                      "optinZenpark": false,
+                      "optinAppNotification": false,
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AB001YZ"
+                        },
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AA789ZZ"
+                        }
+                      ]
+                    }
+                  },
+                  "create phone number and registration plate": {
+                    "value": {
+                      "userId": "p-123",
+                      "passCode": null,
+                      "firstName": "John",
+                      "lastName": "Doe",
+                      "email": "email2@gmail.com",
+                      "phoneNumber": "33671324534",
+                      "optinZenpark": false,
+                      "optinAppNotification": false,
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AB001YZ"
+                        },
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AA789ZZ"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/MemberDetailsResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns USER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns USER_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "USER_NOT_FOUND",
+                      "message": "User was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MemberModifyRequestModel"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/partner/overtimes": {
+      "get": {
+        "summary": "Get a paginated list of your overtimes",
+        "tags": [
+          "Overtimes"
+        ],
+        "description": "This endpoint will allow you to consult overtimes. Filters and pagination are provided.",
+        "operationId": "OvertimesGetOvertimeList",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            }
+          },
+          {
+            "name": "generation.fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            }
+          },
+          {
+            "name": "generation.toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            }
+          },
+          {
+            "name": "pagination.sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/OvertimeListSort"
+            }
+          },
+          {
+            "name": "pagination.sortDirection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PaginationSortDirectionResponse"
+            }
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pagination.pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns empty results when no overtimes match filters",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns all overtimes": {
+                    "value": {
+                      "results": [
+                        {
+                          "id": "3",
+                          "parkingId": "zen-456",
+                          "userId": "p-123",
+                          "beginDate": "2026-05-22T11:07:41Z",
+                          "endDate": "2026-05-23T10:07:41Z",
+                          "amount": 12,
+                          "generationDate": "2026-05-23T11:07:41Z"
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "BeginDate",
+                        "sortDirection": "desc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  },
+                  "filters by user id": {
+                    "value": {
+                      "results": [
+                        {
+                          "id": "5",
+                          "parkingId": "zen-456",
+                          "userId": "p-123",
+                          "beginDate": "2026-05-22T11:07:42Z",
+                          "endDate": "2026-05-23T10:07:42Z",
+                          "amount": 12,
+                          "generationDate": "2026-05-23T11:07:42Z"
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "BeginDate",
+                        "sortDirection": "desc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  },
+                  "filters by date range": {
+                    "value": {
+                      "results": [
+                        {
+                          "id": "7",
+                          "parkingId": "zen-456",
+                          "userId": "p-123",
+                          "beginDate": "2026-05-22T11:07:42Z",
+                          "endDate": "2026-05-23T10:07:42Z",
+                          "amount": 12,
+                          "generationDate": "2026-05-23T11:07:42Z"
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "BeginDate",
+                        "sortDirection": "desc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  },
+                  "filters by generation date range": {
+                    "value": {
+                      "results": [
+                        {
+                          "id": "9",
+                          "parkingId": "zen-456",
+                          "userId": "p-123",
+                          "beginDate": "2026-05-22T11:07:43Z",
+                          "endDate": "2026-05-23T10:07:43Z",
+                          "amount": 12,
+                          "generationDate": "2026-05-23T11:07:43Z"
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "BeginDate",
+                        "sortDirection": "desc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  },
+                  "returns empty results when no overtimes match filters": {
+                    "value": {
+                      "results": [],
+                      "pagination": {
+                        "sortField": "BeginDate",
+                        "sortDirection": "desc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 0
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseOvertimeOvertimeListSort"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/overtimes/{overtimeId}": {
+      "get": {
+        "summary": "Get information about a specific overtime",
+        "tags": [
+          "Overtimes"
+        ],
+        "description": "View a specific overtime details.",
+        "operationId": "OvertimesGetOvertimeDetails",
+        "parameters": [
+          {
+            "name": "overtimeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns overtime details",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns overtime details": {
+                    "value": {
+                      "id": "14",
+                      "parkingId": "zen-456",
+                      "userId": "p-123",
+                      "beginDate": "2026-05-22T11:07:45Z",
+                      "endDate": "2026-05-23T10:07:45Z",
+                      "amount": 12,
+                      "generationDate": "2026-05-23T11:07:45Z"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/OvertimeResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns OVERTIME_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns OVERTIME_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "OVERTIME_NOT_FOUND",
+                      "message": "Overtime not found"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/parkings": {
+      "get": {
+        "summary": "Get a paginated list of parkings",
+        "tags": [
+          "Parkings"
+        ],
+        "description": "Returns the parkings accessible to the authenticated account.",
+        "operationId": "ParkingsGetParkingList",
+        "parameters": [
+          {
+            "name": "locationBounds.northLatitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "locationBounds.westLongitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "locationBounds.southLatitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "locationBounds.eastLongitude",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ParkingFields"
+            }
+          },
+          {
+            "name": "pagination.sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ParkingListSort"
+            }
+          },
+          {
+            "name": "pagination.sortDirection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PaginationSortDirectionResponse"
+            }
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pagination.pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns all parkings",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns all parkings": {
+                    "value": {
+                      "results": [
+                        {
+                          "id": "232",
+                          "name": "[1_ba3ec138] Sentier - rue du Sentier - Paris",
+                          "url": "http://127.0.0.1/parkings/232-1_ba3ec138-sentier-rue-du-sentier-paris",
+                          "location": {
+                            "latitude": 48.8705829,
+                            "longitude": 2.3440672
+                          },
+                          "address": {
+                            "street": "8 rue du Sentier",
+                            "postcode": "75002",
+                            "city": "Paris"
+                          }
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "ParkingName",
+                        "sortDirection": "asc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseParkingPositionParkingListSort"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns MISSING_PARAMETERS",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns MISSING_PARAMETERS": {
+                    "value": {
+                      "errorCode": "MISSING_PARAMETERS",
+                      "message": "Given location bounds are invalid"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/parkings/{parkingId}/open-door": {
+      "post": {
+        "summary": "Opens a parking door identified by parking and user IDs.",
+        "tags": [
+          "Parkings"
+        ],
+        "operationId": "ParkingsOpenDoor",
+        "parameters": [
+          {
+            "name": "parkingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns ok when accessId is provided but not openingReason",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns ok when a reservation is in progress": {
+                    "value": {}
+                  },
+                  "returns ok for a pedestrian access": {
+                    "value": {}
+                  },
+                  "returns ok when accessId is provided but not openingReason": {
+                    "value": {}
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns INVALID_OPEN_REASON, RESERVATION_REQUIRED",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns INVALID_OPEN_REASON, RESERVATION_REQUIRED": {
+                    "value": {
+                      "errorCode": "RESERVATION_REQUIRED",
+                      "message": "User has no active reservation for this parking"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "returns LOCKEDUP_ACCOUNT, NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns LOCKEDUP_ACCOUNT, NOT_AUTHORIZED": {
+                    "value": {
+                      "errorCode": "NOT_AUTHORIZED",
+                      "message": "User is not authorized to access to parking"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns USER_NOT_FOUND, USER_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns PARKING_NOT_FOUND, USER_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "PARKING_NOT_FOUND",
+                      "message": "Parking was not found with the given ID"
+                    }
+                  },
+                  "returns USER_NOT_FOUND, USER_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "USER_NOT_FOUND",
+                      "message": "User was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OpenDoorRequestModel"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/partner/parkings/{parkingId}": {
+      "get": {
+        "summary": "Get information about a specific parking",
+        "tags": [
+          "Parkings"
+        ],
+        "operationId": "ParkingsGetParkingDetails",
+        "parameters": [
+          {
+            "name": "parkingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ParkingFields"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "with all fields",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns the parking": {
+                    "value": {
+                      "id": "298",
+                      "name": "[1_1fa03927] Sentier - rue du Sentier - Paris",
+                      "url": "http://127.0.0.1/parkings/298-1_1fa03927-sentier-rue-du-sentier-paris",
+                      "location": {
+                        "latitude": 48.8705829,
+                        "longitude": 2.3440672
+                      },
+                      "address": {
+                        "street": "8 rue du Sentier",
+                        "postcode": "75002",
+                        "city": "Paris"
+                      }
+                    }
+                  },
+                  "with all fields": {
+                    "value": {
+                      "id": "300",
+                      "name": "[1_4083566b] Sentier - rue du Sentier - Paris",
+                      "url": "http://127.0.0.1/parkings/300-1_4083566b-sentier-rue-du-sentier-paris",
+                      "location": {
+                        "latitude": 48.8705829,
+                        "longitude": 2.3440672
+                      },
+                      "address": {
+                        "street": "8 rue du Sentier",
+                        "postcode": "75002",
+                        "city": "Paris"
+                      },
+                      "availability": {
+                        "reservation": 1
+                      },
+                      "photos": [],
+                      "description": "<div>Yespark vous propose un <strong>parking souterrain</strong> dans la ville de <strong>Paris</strong>. Vous le trouverez 8 rue du Sentier. Le parking est <strong>propre et entretenu</strong> de façon régulière. Profitez d'une place dans un <strong>parking privé</strong> en souscrivant directement depuis le site internet. Avec Yespark le processus de réservation se fait en <strong>quelques minutes </strong>: pas besoin de signer de contrat, tout est instantané. Votre parking vous attend ! Bénéficiez d'un <strong>espace privé et sous-terrain</strong> sans plus attendre. Ouvrez votre parking à l'aide de la télécommande numérique de votre application.</div>",
+                      "localizeParking": "<div>L'entrée du parking se situe au 8 rue du Sentier. L'entrée pour les piétons se situe au 8 rue du Sentier.</div>",
+                      "subscriptions": [
+                        {
+                          "name": "24h/7j",
+                          "type": "FullTime",
+                          "monthlyPrice": 25,
+                          "firstMonthPrice": 25,
+                          "minMonthCommitment": 0
+                        }
+                      ],
+                      "characteristics": {
+                        "maxHeight": 1,
+                        "indoor": true,
+                        "outdoor": false,
+                        "underground": true,
+                        "easyManoeuvre": true,
+                        "lift": false,
+                        "reducedMobilityFriendly": true,
+                        "videosurveillance": false,
+                        "buildingManager": false,
+                        "toilets": true,
+                        "multipleEntriesExits": true,
+                        "extensionAvaible": true
+                      },
+                      "accessTypes": "",
+                      "vehicleTypes": "Moto, Small, Medium, Large",
+                      "reservationPrices": {
+                        "oneHourPrice": 2.5,
+                        "twoHoursPrice": 5,
+                        "oneDayPrice": 23,
+                        "oneWeekPrice": 54,
+                        "oneMonthPrice": 120
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPositionResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns PARKING_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns PARKING_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "PARKING_NOT_FOUND",
+                      "message": "Parking was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/reservations/{number}/cancel": {
+      "patch": {
+        "summary": "Cancel a reservation",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "This endpoint will cancel the specified reservation. Fees can be applied, Use GET /reservations/{number}/cancellation-info to know more about the cost.",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "reservation number",
+            "example": "R123"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns information about the cancellation",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns information about the cancellation": {
+                    "value": {
+                      "number": "43",
+                      "cancellationDate": "2026-05-23T11:07:58Z",
+                      "cancellationAmount": 0
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationCancellationResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns ALREADY_CANCELLED, RESERVATION_CANCEL_ERROR_ALREADY_STARTED",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns ALREADY_CANCELLED, RESERVATION_CANCEL_ERROR_ALREADY_STARTED": {
+                    "value": {
+                      "errorCode": "ALREADY_CANCELLED",
+                      "message": "Reservation already canceled"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns RESERVATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns RESERVATION_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "RESERVATION_NOT_FOUND",
+                      "message": "Reservation was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/reservations/{number}/cancellation-info": {
+      "get": {
+        "summary": "Get reservation cancellation information",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "This endpoint will let you know if its possible and how much it would cost to cancel a reservation.",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "reservation number",
+            "example": "R123"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns the cancellation information when the reservation is not cancellable",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns the cancellation information": {
+                    "value": {
+                      "amount": 0,
+                      "isPossible": true,
+                      "reason": ""
+                    }
+                  },
+                  "returns the cancellation information when the reservation is not cancellable": {
+                    "value": {
+                      "amount": 0,
+                      "isPossible": false,
+                      "reason": "Reservation is not cancellable"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationCancellationInformationResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns RESERVATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns RESERVATION_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "RESERVATION_NOT_FOUND",
+                      "message": "Reservation was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/reservations/{number}/extend": {
+      "patch": {
+        "summary": "Extend a reservation",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "This endpoint will extend the reservation to the new end date provided. To know more about the cost, call GET /reservations/{number}/extension-info?newEndDate={newEndDate}.",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "reservation number",
+            "example": "R123"
+          },
+          {
+            "name": "newEndDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "New end date",
+            "example": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns information about the extended reservation",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns information about the extended reservation": {
+                    "value": {
+                      "number": "62",
+                      "parkingId": "372",
+                      "userId": "123-john-doe",
+                      "creationDate": "2026-05-23T11:08:04Z",
+                      "beginDate": "2026-05-22T11:08:04Z",
+                      "endDate": "2026-05-26T11:08:04Z",
+                      "lastExtensionCreationDate": "2026-05-23T11:08:04Z",
+                      "cancellationDate": null,
+                      "amount": 44.55,
+                      "serviceFee": 6.4,
+                      "openingReasonsAvailable": "CarEntry",
+                      "extendable": true,
+                      "accessInformation": [
+                        {
+                          "type": "CarEntry",
+                          "content": "Pour entrer en voiture :Au 8 rue du Sentier, au niveau du panneau Yespark, ouvrir la grille coulissante COULEUR_GRILLE avec l'application (bouton « Grille voiture »). Emprunter la rampe véhicule et ouvrir la porte basculante COULEUR_PORTE avec l'application (bouton « Porte voiture »). Cheminer vers la place attribuée."
+                        },
+                        {
+                          "type": "CarExit",
+                          "content": "Pour sortir en voiture :Suivre le cheminement inverse à l'entrée voiture. Ouvrir la porte basculante avec l'application (bouton « Porte voiture ») ou avec le digicode mural (code indiqué dans l'application bouton « Porte voiture sortie »)."
+                        },
+                        {
+                          "type": "Pedestrian",
+                          "content": "Pour entrer à pied :Au 8 rue du Sentier, à DROITE_GAUCHE de l'accès voiture, ouvrir la grille piéton COULEUR_GRILLE_PIETON avec l'application (bouton « Grille piéton ») puis dans la cour ouvrir la porte piéton avec l'application (bouton « Porte piéton »). Dans le hall de la résidence, ouvrir la porte menant au sous-sol, descendre les escaliers et ouvrir la porte du parking avec le digicode mural (code indiqué dans l'application bouton « Porte piéton -1 ») puis cheminer vers la place attribuée.Pour sortir à pied :Suivre le cheminement inverse à l'entrée piéton. L'emplacement le plus proche de la sortie piéton est le n°…Un seul cheminement piéton est équipé pour les utilisateurs Yespark. Merci de respecter les consignes ci-dessus, au risque d'être bloqué dans le parking."
+                        }
+                      ],
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AB001YZ"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns END_DATE_TOO_FAR, INVALID_PARAMETER_VALUE, NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns END_DATE_TOO_FAR, INVALID_PARAMETER_VALUE, NOT_AUTHORIZED": {
+                    "value": {
+                      "errorCode": "INVALID_PARAMETER_VALUE",
+                      "message": "New end date is before the current end date"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns RESERVATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns RESERVATION_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "RESERVATION_NOT_FOUND",
+                      "message": "Reservation was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/reservations/{number}/extension-info": {
+      "get": {
+        "summary": "Get reservation extension information",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Provide a new end date (later than the actual one) for a reservation to know if its possible and how much it would cost.",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "reservation number",
+            "example": "R123"
+          },
+          {
+            "name": "newEndDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "New end date",
+            "example": "2025-01-01T00:00:00Z"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns the extension information when the reservation is not extendable",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns the extension information when the reservation is not extendable": {
+                    "value": {
+                      "amount": 19.55,
+                      "isPossible": true,
+                      "reason": ""
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationExtensionInformationResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns INVALID_PARAMETER_VALUE, MISSING_PARAMETERS, RESERVATION_CANCELLED",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns INVALID_PARAMETER_VALUE, MISSING_PARAMETERS, RESERVATION_CANCELLED": {
+                    "value": {
+                      "errorCode": "RESERVATION_CANCELLED",
+                      "message": "Reservation is canceled"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns RESERVATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns RESERVATION_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "RESERVATION_NOT_FOUND",
+                      "message": "Reservation was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/reservations": {
+      "get": {
+        "summary": "Get a paginated list of reservations",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Returns the reservations linked to the authenticated account. Filters and pagination are provided. Filters on lastExtensionCreation are not\r\ncompatible with filters on creation or cancellation date, nor the fromDate or toDate. Filtering on both lastExtensionCreation and one other date filter\r\nwill result in an INCOMPATIBLE_PARAMETERS error.",
+        "operationId": "ReservationsGetReservationsList",
+        "parameters": [
+          {
+            "name": "ParkingId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "example": 123
+          },
+          {
+            "name": "userId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": "your-formatted-user-id"
+          },
+          {
+            "name": "FromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter reservations from this date"
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use FromDate instead"
+          },
+          {
+            "name": "ToDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter reservations up to this date"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use ToDate instead"
+          },
+          {
+            "name": "creation.fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter by creation date from"
+          },
+          {
+            "name": "Creation.FromDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use creation.fromDate instead"
+          },
+          {
+            "name": "creation.toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter by creation date to"
+          },
+          {
+            "name": "Creation.ToDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use creation.toDate instead"
+          },
+          {
+            "name": "cancellation.fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter by cancellation date from"
+          },
+          {
+            "name": "Cancellation.FromDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use cancellation.fromDate instead"
+          },
+          {
+            "name": "cancellation.toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter by cancellation date to"
+          },
+          {
+            "name": "Cancellation.ToDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use cancellation.toDate instead"
+          },
+          {
+            "name": "lastExtensionCreation.fromDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter by last extension creation date from"
+          },
+          {
+            "name": "LastExtensionCreation.FromDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use lastExtensionCreation.fromDate instead"
+          },
+          {
+            "name": "lastExtensionCreation.toDate",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Filter by last extension creation date to"
+          },
+          {
+            "name": "LastExtensionCreation.ToDate",
+            "in": "query",
+            "required": false,
+            "deprecated": true,
+            "schema": {
+              "type": "string",
+              "format": "date_time"
+            },
+            "description": "Use lastExtensionCreation.toDate instead"
+          },
+          {
+            "name": "pagination.sortField",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ReservationSearchSort"
+            }
+          },
+          {
+            "name": "pagination.sortDirection",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/PaginationSortDirectionResponse"
+            }
+          },
+          {
+            "name": "pagination.pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pagination.pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns all reservations",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns all reservations": {
+                    "value": {
+                      "results": [
+                        {
+                          "number": "85",
+                          "parkingId": "399",
+                          "userId": "123-john-doe",
+                          "creationDate": "2026-05-23T11:08:09Z",
+                          "beginDate": "2026-05-25T10:00:00Z",
+                          "endDate": "2026-05-25T18:00:00Z",
+                          "lastExtensionCreationDate": null,
+                          "cancellationDate": null,
+                          "amount": 25,
+                          "serviceFee": 3,
+                          "openingReasonsAvailable": "CarEntry",
+                          "extendable": true,
+                          "accessInformation": [
+                            {
+                              "type": "CarEntry",
+                              "content": "Pour entrer en voiture :Au 8 rue du Sentier, au niveau du panneau Yespark, ouvrir la grille coulissante COULEUR_GRILLE avec l'application (bouton « Grille voiture »). Emprunter la rampe véhicule et ouvrir la porte basculante COULEUR_PORTE avec l'application (bouton « Porte voiture »). Cheminer vers la place attribuée."
+                            },
+                            {
+                              "type": "CarExit",
+                              "content": "Pour sortir en voiture :Suivre le cheminement inverse à l'entrée voiture. Ouvrir la porte basculante avec l'application (bouton « Porte voiture ») ou avec le digicode mural (code indiqué dans l'application bouton « Porte voiture sortie »)."
+                            },
+                            {
+                              "type": "Pedestrian",
+                              "content": "Pour entrer à pied :Au 8 rue du Sentier, à DROITE_GAUCHE de l'accès voiture, ouvrir la grille piéton COULEUR_GRILLE_PIETON avec l'application (bouton « Grille piéton ») puis dans la cour ouvrir la porte piéton avec l'application (bouton « Porte piéton »). Dans le hall de la résidence, ouvrir la porte menant au sous-sol, descendre les escaliers et ouvrir la porte du parking avec le digicode mural (code indiqué dans l'application bouton « Porte piéton -1 ») puis cheminer vers la place attribuée.Pour sortir à pied :Suivre le cheminement inverse à l'entrée piéton. L'emplacement le plus proche de la sortie piéton est le n°…Un seul cheminement piéton est équipé pour les utilisateurs Yespark. Merci de respecter les consignes ci-dessus, au risque d'être bloqué dans le parking."
+                            }
+                          ],
+                          "registrationPlates": []
+                        }
+                      ],
+                      "pagination": {
+                        "sortField": "BeginDate",
+                        "sortDirection": "desc",
+                        "pageNumber": 1,
+                        "pageSize": 20,
+                        "totalPages": 1,
+                        "totalResults": 1
+                      }
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ListResponseReservationReservationSearchSort"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/reservations/reserve": {
+      "post": {
+        "summary": "Create a reservation",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "This endpoint will create a new reservation.",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns the reservation",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns the reservation": {
+                    "value": {
+                      "number": "123",
+                      "parkingId": "509",
+                      "userId": "123-john-doe",
+                      "creationDate": "2026-05-23T11:08:21Z",
+                      "beginDate": "2026-05-24T11:08:21Z",
+                      "endDate": "2026-05-25T11:08:21Z",
+                      "lastExtensionCreationDate": null,
+                      "cancellationDate": null,
+                      "amount": 10,
+                      "serviceFee": 1.5,
+                      "openingReasonsAvailable": "CarEntry",
+                      "extendable": true,
+                      "accessInformation": [
+                        {
+                          "type": "CarEntry",
+                          "content": "Pour entrer en voiture :Au 8 rue du Sentier, au niveau du panneau Yespark, ouvrir la grille coulissante COULEUR_GRILLE avec l'application (bouton « Grille voiture »). Emprunter la rampe véhicule et ouvrir la porte basculante COULEUR_PORTE avec l'application (bouton « Porte voiture »). Cheminer vers la place attribuée."
+                        },
+                        {
+                          "type": "CarExit",
+                          "content": "Pour sortir en voiture :Suivre le cheminement inverse à l'entrée voiture. Ouvrir la porte basculante avec l'application (bouton « Porte voiture ») ou avec le digicode mural (code indiqué dans l'application bouton « Porte voiture sortie »)."
+                        },
+                        {
+                          "type": "Pedestrian",
+                          "content": "Pour entrer à pied :Au 8 rue du Sentier, à DROITE_GAUCHE de l'accès voiture, ouvrir la grille piéton COULEUR_GRILLE_PIETON avec l'application (bouton « Grille piéton ») puis dans la cour ouvrir la porte piéton avec l'application (bouton « Porte piéton »). Dans le hall de la résidence, ouvrir la porte menant au sous-sol, descendre les escaliers et ouvrir la porte du parking avec le digicode mural (code indiqué dans l'application bouton « Porte piéton -1 ») puis cheminer vers la place attribuée.Pour sortir à pied :Suivre le cheminement inverse à l'entrée piéton. L'emplacement le plus proche de la sortie piéton est le n°…Un seul cheminement piéton est équipé pour les utilisateurs Yespark. Merci de respecter les consignes ci-dessus, au risque d'être bloqué dans le parking."
+                        }
+                      ],
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AA134DR"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns NOT_AUTHORIZED",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns NOT_AUTHORIZED": {
+                    "value": {
+                      "errorCode": "NOT_AUTHORIZED",
+                      "message": "User is not allowed to reserve a parking."
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns USER_NOT_FOUND, PARKING_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns PARKING_NOT_FOUND, USER_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "PARKING_NOT_FOUND",
+                      "message": "Parking was not found with the given ID"
+                    }
+                  },
+                  "returns USER_NOT_FOUND, PARKING_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "USER_NOT_FOUND",
+                      "message": "User was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReservationRequestModel"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    },
+    "/api/partner/reservations/{number}": {
+      "get": {
+        "summary": "Get reservation details",
+        "tags": [
+          "Reservations"
+        ],
+        "description": "Returns the details of the reservation identified by its number.",
+        "operationId": "ReservationsGetReservationDetail",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "reservation number",
+            "example": "R123"
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns the reservation",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns the reservation": {
+                    "value": {
+                      "number": "126",
+                      "parkingId": "522",
+                      "userId": "123-john-doe",
+                      "creationDate": "2026-05-23T11:08:23Z",
+                      "beginDate": "2026-05-25T10:00:00Z",
+                      "endDate": "2026-05-25T18:00:00Z",
+                      "lastExtensionCreationDate": null,
+                      "cancellationDate": null,
+                      "amount": 25,
+                      "serviceFee": 3,
+                      "openingReasonsAvailable": "CarEntry",
+                      "extendable": true,
+                      "accessInformation": [
+                        {
+                          "type": "CarEntry",
+                          "content": "Pour entrer en voiture :Au 8 rue du Sentier, au niveau du panneau Yespark, ouvrir la grille coulissante COULEUR_GRILLE avec l'application (bouton « Grille voiture »). Emprunter la rampe véhicule et ouvrir la porte basculante COULEUR_PORTE avec l'application (bouton « Porte voiture »). Cheminer vers la place attribuée."
+                        },
+                        {
+                          "type": "CarExit",
+                          "content": "Pour sortir en voiture :Suivre le cheminement inverse à l'entrée voiture. Ouvrir la porte basculante avec l'application (bouton « Porte voiture ») ou avec le digicode mural (code indiqué dans l'application bouton « Porte voiture sortie »)."
+                        },
+                        {
+                          "type": "Pedestrian",
+                          "content": "Pour entrer à pied :Au 8 rue du Sentier, à DROITE_GAUCHE de l'accès voiture, ouvrir la grille piéton COULEUR_GRILLE_PIETON avec l'application (bouton « Grille piéton ») puis dans la cour ouvrir la porte piéton avec l'application (bouton « Porte piéton »). Dans le hall de la résidence, ouvrir la porte menant au sous-sol, descendre les escaliers et ouvrir la porte du parking avec le digicode mural (code indiqué dans l'application bouton « Porte piéton -1 ») puis cheminer vers la place attribuée.Pour sortir à pied :Suivre le cheminement inverse à l'entrée piéton. L'emplacement le plus proche de la sortie piéton est le n°…Un seul cheminement piéton est équipé pour les utilisateurs Yespark. Merci de respecter les consignes ci-dessus, au risque d'être bloqué dans le parking."
+                        }
+                      ],
+                      "registrationPlates": [
+                        {
+                          "countryCode": "FR",
+                          "plateNumber": "AB001YZ"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ReservationResponseModel"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "returns RESERVATION_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns RESERVATION_NOT_FOUND": {
+                    "value": {
+                      "errorCode": "RESERVATION_NOT_FOUND",
+                      "message": "Reservation was not found with the given ID"
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/partner/search/space": {
+      "post": {
+        "summary": "Search for available spaces",
+        "tags": [
+          "Search"
+        ],
+        "description": "This endpoint allows you to get a list of available spaces in different car parks.",
+        "operationId": "SearchSpace",
+        "parameters": [],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "returns search on motorcycle",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns available parkings": {
+                    "value": {
+                      "pageNumber": 1,
+                      "searchRequestId": "1",
+                      "searchResults": [
+                        {
+                          "parking": {
+                            "id": "539",
+                            "name": "[1_3445809b] Sentier - rue du Sentier - Paris",
+                            "url": "http://127.0.0.1/parkings/539-1_3445809b-sentier-rue-du-sentier-paris",
+                            "location": {
+                              "latitude": 48.8705829,
+                              "longitude": 2.3440672
+                            },
+                            "address": {
+                              "street": "8 rue du Sentier",
+                              "postcode": "75002",
+                              "city": "Paris"
+                            },
+                            "availability": {
+                              "reservation": 1
+                            },
+                            "photos": [],
+                            "description": "<div>Yespark vous offre la possibilité de stationner votre véhicule dans un <strong>parking privé et sous-terrain</strong>. Vous le trouverez 8 rue du Sentier à Paris. Le parking est <strong>propre et entretenu</strong> de façon régulière. Avec Yespark, vous pouvez bénéficier d'une <strong>place de stationnement en quelques clics</strong>. Pas besoin de signer de bail. Aucun préavis n'est imposé pour la <strong>location d'une place de parking</strong>. N'attendez plus et bénéficiez de votre <strong>place de stationnement</strong> dès maintenant ! L'ouverture de votre parking se fera à l'aide de la <strong>télécommande numérique</strong>, incluse dans votre application Yespark.</div>",
+                            "localizeParking": "<div>L'entrée du parking se situe au 8 rue du Sentier. L'entrée pour les piétons se situe au 8 rue du Sentier.</div>",
+                            "subscriptions": [
+                              {
+                                "name": "24h/7j",
+                                "type": "FullTime",
+                                "monthlyPrice": 25,
+                                "firstMonthPrice": 25,
+                                "minMonthCommitment": 0
+                              }
+                            ],
+                            "characteristics": {
+                              "maxHeight": 1,
+                              "indoor": true,
+                              "outdoor": false,
+                              "underground": true,
+                              "easyManoeuvre": true,
+                              "lift": false,
+                              "reducedMobilityFriendly": true,
+                              "videosurveillance": false,
+                              "buildingManager": false,
+                              "toilets": true,
+                              "multipleEntriesExits": true,
+                              "extensionAvaible": true
+                            },
+                            "accessTypes": "",
+                            "vehicleTypes": "Moto, Small, Medium, Large",
+                            "reservationPrices": {
+                              "oneHourPrice": 2.5,
+                              "twoHoursPrice": 5,
+                              "oneDayPrice": 23,
+                              "oneWeekPrice": 54,
+                              "oneMonthPrice": 120
+                            }
+                          },
+                          "travelTime": 1,
+                          "distance": 0,
+                          "price": 23,
+                          "parkingAlmostFull": false
+                        }
+                      ]
+                    }
+                  },
+                  "returns available parkings if geo bounds are provided": {
+                    "value": {
+                      "pageNumber": 1,
+                      "searchRequestId": "1",
+                      "searchResults": [
+                        {
+                          "parking": {
+                            "id": "541",
+                            "name": "[1_eaae57b9] Sentier - rue du Sentier - Paris",
+                            "url": "http://127.0.0.1/parkings/541-1_eaae57b9-sentier-rue-du-sentier-paris",
+                            "location": {
+                              "latitude": 48.8705829,
+                              "longitude": 2.3440672
+                            },
+                            "address": {
+                              "street": "8 rue du Sentier",
+                              "postcode": "75002",
+                              "city": "Paris"
+                            },
+                            "availability": {
+                              "reservation": 1
+                            },
+                            "photos": [],
+                            "description": "<div>Un <strong>parking souterrain</strong> est désormais disponible 8 rue du Sentier dans la commune de Paris. Le parking est idéal pour ceux qui souhaitent stationner leur véhicule dans un lieu privé et sous-terrain. Pour bénéficier d'une place dans ce parking, vous devez créer un compte sur le site internet Yespark et cliquer sur « visiter le parking » . Avec Yespark vous avez la possibilité de<strong> tester gratuitement</strong> votre place pendant 2 jours. N'attendez plus et bénéficiez de votre <strong>place de stationnement</strong> dès maintenant ! L'ouverture de votre parking se fera à l'aide de la <strong>télécommande numérique</strong>, incluse dans votre application Yespark.</div>",
+                            "localizeParking": "<div>L'entrée du parking se situe au 8 rue du Sentier. L'entrée pour les piétons se situe au 8 rue du Sentier.</div>",
+                            "subscriptions": [
+                              {
+                                "name": "24h/7j",
+                                "type": "FullTime",
+                                "monthlyPrice": 25,
+                                "firstMonthPrice": 25,
+                                "minMonthCommitment": 0
+                              }
+                            ],
+                            "characteristics": {
+                              "maxHeight": 1,
+                              "indoor": true,
+                              "outdoor": false,
+                              "underground": true,
+                              "easyManoeuvre": true,
+                              "lift": false,
+                              "reducedMobilityFriendly": true,
+                              "videosurveillance": false,
+                              "buildingManager": false,
+                              "toilets": true,
+                              "multipleEntriesExits": true,
+                              "extensionAvaible": true
+                            },
+                            "accessTypes": "",
+                            "vehicleTypes": "Moto, Small, Medium, Large",
+                            "reservationPrices": {
+                              "oneHourPrice": 2.5,
+                              "twoHoursPrice": 5,
+                              "oneDayPrice": 23,
+                              "oneWeekPrice": 54,
+                              "oneMonthPrice": 120
+                            }
+                          },
+                          "price": 23,
+                          "parkingAlmostFull": false
+                        }
+                      ]
+                    }
+                  },
+                  "returns available parkings when sort field is price and sort direction is asc": {
+                    "value": {
+                      "pageNumber": 1,
+                      "searchRequestId": "1",
+                      "searchResults": [
+                        {
+                          "parking": {
+                            "id": "543",
+                            "name": "[1_3994fb53] Sentier - rue du Sentier - Paris",
+                            "url": "http://127.0.0.1/parkings/543-1_3994fb53-sentier-rue-du-sentier-paris",
+                            "location": {
+                              "latitude": 48.8705829,
+                              "longitude": 2.3440672
+                            },
+                            "address": {
+                              "street": "8 rue du Sentier",
+                              "postcode": "75002",
+                              "city": "Paris"
+                            },
+                            "availability": {
+                              "reservation": 1
+                            },
+                            "photos": [],
+                            "description": "<div>Yespark vous propose un <strong>parking souterrain</strong> dans la ville de <strong>Paris</strong>. Vous le trouverez 8 rue du Sentier. Le parking est privé et dépend d'une résidence d'habitation. <strong>Louez votre place de stationnement</strong> en quelques minutes seulement depuis le site internet. Aucun préavis n'est imposé pour la <strong>location d'une place de parking</strong>. Profitez sans plus tarder de ces conditions de locations avantageuses. L'ouverture de votre parking se fera à l'aide de la <strong>télécommande numérique</strong>, incluse dans votre application Yespark.</div>",
+                            "localizeParking": "<div>L'entrée du parking se situe au 8 rue du Sentier. L'entrée pour les piétons se situe au 8 rue du Sentier.</div>",
+                            "subscriptions": [
+                              {
+                                "name": "24h/7j",
+                                "type": "FullTime",
+                                "monthlyPrice": 25,
+                                "firstMonthPrice": 25,
+                                "minMonthCommitment": 0
+                              }
+                            ],
+                            "characteristics": {
+                              "maxHeight": 1,
+                              "indoor": true,
+                              "outdoor": false,
+                              "underground": true,
+                              "easyManoeuvre": true,
+                              "lift": false,
+                              "reducedMobilityFriendly": true,
+                              "videosurveillance": false,
+                              "buildingManager": false,
+                              "toilets": true,
+                              "multipleEntriesExits": true,
+                              "extensionAvaible": true
+                            },
+                            "accessTypes": "",
+                            "vehicleTypes": "Moto, Small, Medium, Large",
+                            "reservationPrices": {
+                              "oneHourPrice": 2.5,
+                              "twoHoursPrice": 5,
+                              "oneDayPrice": 23,
+                              "oneWeekPrice": 54,
+                              "oneMonthPrice": 120
+                            }
+                          },
+                          "travelTime": 1,
+                          "distance": 0,
+                          "price": 23,
+                          "parkingAlmostFull": false
+                        }
+                      ]
+                    }
+                  },
+                  "returns search on motorcycle": {
+                    "value": {
+                      "pageNumber": 1,
+                      "searchRequestId": "1",
+                      "searchResults": [
+                        {
+                          "parking": {
+                            "id": "545",
+                            "name": "[1_48c6234d] Sentier - rue du Sentier - Paris",
+                            "url": "http://127.0.0.1/parkings/545-1_48c6234d-sentier-rue-du-sentier-paris",
+                            "location": {
+                              "latitude": 48.8705829,
+                              "longitude": 2.3440672
+                            },
+                            "address": {
+                              "street": "8 rue du Sentier",
+                              "postcode": "75002",
+                              "city": "Paris"
+                            },
+                            "availability": {
+                              "reservation": 1
+                            },
+                            "photos": [],
+                            "description": "<div>Yespark vous propose un <strong>parking souterrain</strong> dans la ville de <strong>Paris</strong>. Vous le trouverez 8 rue du Sentier. Le parking est idéal pour ceux qui souhaitent stationner leur véhicule dans un lieu privé et sous-terrain. Avec Yespark, vous pouvez bénéficier d'une <strong>place de stationnement en quelques clics</strong>. Pas besoin de signer de bail. <strong>Sans frais cachés</strong> : le prix affiché est le prix de votre mensualité. N'attendez plus et bénéficiez de votre <strong>place de stationnement</strong> dès maintenant ! L'ouverture de votre parking se fera à l'aide de la <strong>télécommande numérique</strong>, incluse dans votre application Yespark.</div>",
+                            "localizeParking": "<div>L'entrée du parking se situe au 8 rue du Sentier. L'entrée pour les piétons se situe au 8 rue du Sentier.</div>",
+                            "subscriptions": [
+                              {
+                                "name": "24h/7j",
+                                "type": "FullTime",
+                                "monthlyPrice": 25,
+                                "firstMonthPrice": 25,
+                                "minMonthCommitment": 0
+                              }
+                            ],
+                            "characteristics": {
+                              "maxHeight": 1,
+                              "indoor": true,
+                              "outdoor": false,
+                              "underground": true,
+                              "easyManoeuvre": true,
+                              "lift": false,
+                              "reducedMobilityFriendly": true,
+                              "videosurveillance": false,
+                              "buildingManager": false,
+                              "toilets": true,
+                              "multipleEntriesExits": true,
+                              "extensionAvaible": true
+                            },
+                            "accessTypes": "",
+                            "vehicleTypes": "Moto, Small, Medium, Large",
+                            "reservationPrices": {
+                              "oneHourPrice": 2.5,
+                              "twoHoursPrice": 5,
+                              "oneDayPrice": 23,
+                              "oneWeekPrice": 54,
+                              "oneMonthPrice": 120
+                            }
+                          },
+                          "travelTime": 1,
+                          "distance": 0,
+                          "price": 25,
+                          "parkingAlmostFull": false
+                        }
+                      ]
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/SearchSpaceResponseModel"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "returns END_DATE_TOO_FAR, MISSING_PARAMETERS",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "returns END_DATE_TOO_FAR, MISSING_PARAMETERS": {
+                    "value": {
+                      "errorCode": "END_DATE_TOO_FAR",
+                      "message": "The end date is too far in the future."
+                    }
+                  }
+                },
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseModel"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchSpaceRequestModel"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  }
+}
