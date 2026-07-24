@@ -1,4 +1,4 @@
-# yespark-sdk
+# @bip-go/yespark
 
 Fetch-based TypeScript SDK for the **Yespark Group Partner API** (Zenpark).
 
@@ -12,7 +12,7 @@ Fetch-based TypeScript SDK for the **Yespark Group Partner API** (Zenpark).
 ## Install
 
 ```bash
-npm install yespark-sdk
+npm install @bip-go/yespark
 ```
 
 ## Quick start (singleton)
@@ -21,7 +21,7 @@ Configure once at startup, then import `yespark` anywhere.
 
 ```ts
 // setup.ts — run once
-import { configure } from "yespark-sdk";
+import { configure } from "@bip-go/yespark";
 
 configure({
   environment: "production", // or "sandbox"
@@ -32,7 +32,7 @@ configure({
 
 ```ts
 // anywhere.ts
-import { yespark } from "yespark-sdk";
+import { yespark } from "@bip-go/yespark";
 
 const members = await yespark.members.list({ "pagination.pageNumber": 1 });
 const parking = await yespark.parkings.get("p_123");
@@ -44,7 +44,7 @@ reference; both throw `YesparkConfigError` if `configure()` hasn't run yet.
 ## Standalone instances
 
 ```ts
-import { YesparkClient } from "yespark-sdk";
+import { YesparkClient } from "@bip-go/yespark";
 
 const client = new YesparkClient({
   environment: "sandbox",
@@ -100,7 +100,7 @@ await yespark.reservations.extend(reservation.number!, "2026-08-01T10:00:00");
 Non-2xx responses throw a `YesparkApiError`:
 
 ```ts
-import { YesparkApiError } from "yespark-sdk";
+import { YesparkApiError } from "@bip-go/yespark";
 
 try {
   await yespark.members.get("unknown");
@@ -135,7 +135,7 @@ import type {
   ParkingDetailResponseModel,
   ReservationRequestModel,
   Schemas, // Schemas["<AnyModelName>"]
-} from "yespark-sdk";
+} from "@bip-go/yespark";
 ```
 
 ## Development
