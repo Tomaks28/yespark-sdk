@@ -56,18 +56,17 @@ export interface ResolvedConfig {
 
 export function resolveConfig(config: YesparkClientConfig): ResolvedConfig {
   const baseUrl =
-    config.baseUrl ??
-    YESPARK_BASE_URLS[config.environment ?? "production"];
+    config.baseUrl ?? YESPARK_BASE_URLS[config.environment ?? "production"];
 
   const fetchImpl = config.fetch ?? globalThis.fetch;
   if (typeof fetchImpl !== "function") {
-    throw new Error(
+    throw new TypeError(
       "No global `fetch` available. Use Node >= 18 or provide a `fetch` in the config.",
     );
   }
 
   return {
-    baseUrl: baseUrl.replace(/\/+$/, ""),
+    baseUrl: baseUrl.replace(/\/$/, ""),
     token: config.token,
     credentials: config.credentials,
     timeoutMs: config.timeoutMs ?? 30_000,
