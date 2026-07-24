@@ -10,7 +10,7 @@ export class YesparkApiError extends Error {
   readonly status: number;
   readonly statusText: string;
   readonly errorCode?: string;
-  readonly body?: ErrorResponseModel | unknown;
+  readonly body?: unknown;
   readonly url: string;
   readonly method: string;
 
