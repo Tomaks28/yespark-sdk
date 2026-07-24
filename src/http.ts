@@ -8,8 +8,15 @@ export function buildQuery(query?: Record<string, unknown> | null): string {
   if (!query) return "";
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query)) {
-    if (value === undefined || value === null) continue;
-    params.append(key, String(value));
+    if (value == null) continue;
+
+    if (
+      typeof value === "string" ||
+      typeof value === "number" ||
+      typeof value === "boolean"
+    ) {
+      params.append(key, String(value));
+    }
   }
   const qs = params.toString();
   return qs ? `?${qs}` : "";
@@ -21,7 +28,7 @@ export function buildPath(
   params?: Record<string, string | number> | null,
 ): string {
   if (!params) return template;
-  return template.replace(/\{([^}]+)\}/g, (_match, key: string) => {
+  return template.replace(/\{([^{}]*)\}/g, (_match, key: string) => {
     const value = params[key];
     if (value === undefined || value === null) {
       throw new Error(`Missing path parameter "${key}" for "${template}"`);
