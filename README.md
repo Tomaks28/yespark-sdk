@@ -52,6 +52,58 @@ const client = new YesparkClient({
 });
 ```
 
+## Terminal CLI Interactive (Console interactive avec Prompts)
+
+Un menu interactif riche (basé sur `@inquirer/prompts`) est désormais intégré pour gérer l'ensemble des opérations en ligne de commande :
+
+- 🎟️ **Gestion des Réservations** :
+  - `Réserver une place` (`search.space` + `reservations.reserve`)
+  - `Lister mes réservations` (`reservations.list`)
+  - `Consulter les détails d'une réservation` (`reservations.get`)
+  - `Prolonger une réservation` (`reservations.extensionInfo` + `reservations.extend`)
+  - `Annuler une réservation` (`reservations.cancellationInfo` + `reservations.cancel`)
+- 🅿️ **Parkings & Accès** :
+  - `Ouvrir la porte d'un parking` (`accesses.listForParking` + `parkings.openDoor`)
+  - `Consulter la fiche détaillée d'un parking` (`parkings.get`)
+  - `Lister les parkings par zone GPS` (`parkings.list`)
+- 👥 **Gestion complète des Membres** :
+  - `Lister`, `Consulter`, `Créer`, `Modifier` et `Supprimer` des membres (`members.list`, `get`, `create`, `update`, `delete`)
+- ⏱️ **Dépassements & Surcoûts** :
+  - `Lister et consulter les dépassements de durée (Overtimes)` (`overtimes.list`, `get`)
+- ⚙️ **Changer d'environnement / Identifiants**
+
+### Lancer la console interactive
+
+```bash
+# Lancement interactif (vous serez guidé à l'écran) :
+npm run reserve
+
+# Ou pré-remplir les identifiants pour éviter de les resaisir dans les prompts :
+npm run reserve -- --email partner@example.com --password 'votre_mot_de_passe'
+```
+
+### Mode automatique direct (Non-interactif)
+
+Pour des scripts automatisés ou une réservation directe sans interaction :
+
+```bash
+npm run reserve -- --email partner@example.com --password 'votre_mot_de_passe' --non-interactive
+```
+
+### Paramètres et options CLI
+
+| Option | Description | Valeur par défaut |
+| ------ | ----------- | ----------------- |
+| `--address "<adresse>"` | Adresse ciblée | `"37 rue du Passeur de Boulogne 92130 Issy-les-Moulineaux"` |
+| `--email "<email>"` | Email du compte Yespark | Variable `YESPARK_EMAIL` |
+| `--password "<pass>"` | Mot de passe Yespark | Variable `YESPARK_PASSWORD` |
+| `--token "<token>"` | Token Bearer statique | Variable `YESPARK_TOKEN` |
+| `--env "<sandbox\|production>"` | Environnement API | `"sandbox"` |
+| `--hours <nombre>` | Durée en heures | `2` |
+| `--plate "<immatriculation>"` | Plaque d'immatriculation | `"AA-123-BB"` |
+| `--user-id "<userId>"` | ID de membre unique | Auto-généré |
+| `--non-interactive` | Exécution directe sans menu interactif | `false` |
+
 ## Configuration
 
 | Option           | Type                              | Default        |
