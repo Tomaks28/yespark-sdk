@@ -55,8 +55,10 @@ export interface ResolvedConfig {
 }
 
 export function resolveConfig(config: YesparkClientConfig): ResolvedConfig {
-  const baseUrl =
-    config.baseUrl ?? YESPARK_BASE_URLS[config.environment ?? "production"];
+  const envKey = (config.environment && YESPARK_BASE_URLS[config.environment])
+    ? config.environment
+    : "production";
+  const baseUrl = config.baseUrl ?? YESPARK_BASE_URLS[envKey];
 
   const fetchImpl = config.fetch ?? globalThis.fetch;
   if (typeof fetchImpl !== "function") {
