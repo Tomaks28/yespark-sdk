@@ -32,7 +32,7 @@ export async function handleOpenDoor(): Promise<void> {
         userId = parts[1] || "";
       }
     }
-  } catch (err: any) {
+  } catch (_err: any) {
     console.log("ℹ️ Pré-récupération des réservations non disponible, saisie manuelle requise.");
   }
 
