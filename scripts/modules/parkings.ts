@@ -12,7 +12,9 @@ export async function handleOpenDoor(): Promise<void> {
 
   try {
     const listRes = await cli.reservations.list({ "pagination.pageSize": 10 });
-    const reservations = (listRes.results || []).filter((r) => !r.cancellationDate);
+    const reservations = (listRes.results || []).filter(
+      (r) => !r.cancellationDate,
+    );
 
     if (reservations.length > 0) {
       const choice = await select({
@@ -22,7 +24,10 @@ export async function handleOpenDoor(): Promise<void> {
             name: `Parking ID: ${r.parkingId} (Résa N° ${r.number} - Membre: ${r.userId})`,
             value: `${r.parkingId}|${r.userId}`,
           })),
-          { name: "🔍 Saisir manuellement un Parking ID et User ID", value: "manual" },
+          {
+            name: "🔍 Saisir manuellement un Parking ID et User ID",
+            value: "manual",
+          },
         ],
       });
 
@@ -33,13 +38,16 @@ export async function handleOpenDoor(): Promise<void> {
       }
     }
   } catch (_err: any) {
-    console.log("ℹ️ Pré-récupération des réservations non disponible, saisie manuelle requise.");
+    console.log(
+      "ℹ️ Pré-récupération des réservations non disponible, saisie manuelle requise.",
+    );
   }
 
   if (!parkingId) {
     parkingId = await input({
       message: "Saisissez l'ID du parking (ex: 539) :",
-      validate: (v) => v.trim() !== "" || "Veuillez entrer un ID de parking valide",
+      validate: (v) =>
+        v.trim() !== "" || "Veuillez entrer un ID de parking valide",
     });
   }
 
@@ -58,16 +66,21 @@ export async function handleOpenDoor(): Promise<void> {
         message: "Sélectionnez l'accès du parking à ouvrir :",
         choices: [
           ...accesses.map((a) => ({
-            name: `${a.name || 'Accès'} (ID: ${a.id}, Kind: ${a.kind || 'N/A'})`,
+            name: `${a.name || "Accès"} (ID: ${a.id}, Kind: ${a.kind || "N/A"})`,
             value: a.id,
           })),
-          { name: "Ouverture générale sans ID d'accès spécifique", value: undefined },
+          {
+            name: "Ouverture générale sans ID d'accès spécifique",
+            value: undefined,
+          },
         ],
       });
       accessId = selectedAccess;
     }
   } catch (e: any) {
-    console.log(`ℹ️ Liste des accès spécifiques non disponible (${e.message || e}), ouverture par défaut.`);
+    console.log(
+      `ℹ️ Liste des accès spécifiques non disponible (${e.message || e}), ouverture par défaut.`,
+    );
   }
 
   const openingReason = await select({
@@ -79,7 +92,9 @@ export async function handleOpenDoor(): Promise<void> {
     ],
   });
 
-  console.log(`\n📶 Envoi de la commande d'ouverture au parking ID: ${parkingId}...`);
+  console.log(
+    `\n📶 Envoi de la commande d'ouverture au parking ID: ${parkingId}...`,
+  );
   try {
     await cli.parkings.openDoor(parkingId, {
       userId,
@@ -135,7 +150,9 @@ export async function handleListParkingsInArea(): Promise<void> {
   let viewing = true;
 
   while (viewing) {
-    console.log(`\n🔎 Recherche des parkings dans la zone (Page ${pageNumber}, ${pageSize}/page)...`);
+    console.log(
+      `\n🔎 Recherche des parkings dans la zone (Page ${pageNumber}, ${pageSize}/page)...`,
+    );
     try {
       const res = await cli.parkings.list({
         "locationBounds.northLatitude": geo.latitude + delta,
@@ -151,24 +168,38 @@ export async function handleListParkingsInArea(): Promise<void> {
       const totalPages = pag.totalPages || 1;
       const totalResults = pag.totalResults ?? parkings.length;
 
-      console.log(`\n✨ Parkings (Page ${pageNumber}/${totalPages} - ${parkings.length} sur ${totalResults} au total) :\n`);
+      console.log(
+        `\n✨ Parkings (Page ${pageNumber}/${totalPages} - ${parkings.length} sur ${totalResults} au total) :\n`,
+      );
       parkings.forEach((p: any, index: number) => {
-        console.log(`[${(pageNumber - 1) * pageSize + index + 1}] ID: ${p.id} | ${p.name || 'Parking sans nom'}`);
+        console.log(
+          `[${(pageNumber - 1) * pageSize + index + 1}] ID: ${p.id} | ${p.name || "Parking sans nom"}`,
+        );
         if (p.address) {
-          console.log(`    Adresse : ${p.address.street || ''}, ${p.address.postcode || ''} ${p.address.city || ''}`);
+          console.log(
+            `    Adresse : ${p.address.street || ""}, ${p.address.postcode || ""} ${p.address.city || ""}`,
+          );
         }
         if (p.location) {
-          console.log(`    GPS     : Lat ${p.location.latitude}, Lon ${p.location.longitude}`);
+          console.log(
+            `    GPS     : Lat ${p.location.latitude}, Lon ${p.location.longitude}`,
+          );
         }
         console.log("-------------------------------------------------");
       });
 
       const choices: Array<{ name: string; value: string }> = [];
       if (pageNumber < totalPages) {
-        choices.push({ name: `➡️ Page suivante (${pageNumber + 1}/${totalPages})`, value: "next" });
+        choices.push({
+          name: `➡️ Page suivante (${pageNumber + 1}/${totalPages})`,
+          value: "next",
+        });
       }
       if (pageNumber > 1) {
-        choices.push({ name: `⬅️ Page précédente (${pageNumber - 1}/${totalPages})`, value: "prev" });
+        choices.push({
+          name: `⬅️ Page précédente (${pageNumber - 1}/${totalPages})`,
+          value: "prev",
+        });
       }
       choices.push({ name: `↩️ Retour au menu principal`, value: "back" });
 
@@ -180,7 +211,6 @@ export async function handleListParkingsInArea(): Promise<void> {
       if (navAction === "next") pageNumber++;
       else if (navAction === "prev") pageNumber--;
       else viewing = false;
-
     } catch (err: any) {
       console.error(formatApiError(err));
       viewing = false;
