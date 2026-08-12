@@ -62,3 +62,42 @@ jobs:
           exit-code: "1"
         env:
           TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db:2
+
+  bearer:
+    name: Bearer (SAST)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Bearer diffs against the base branch on pull requests
+          fetch-depth: 0
+
+      - name: Bearer scan (fail on critical/high)
+        uses: bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc # v2
+        with:
+          path: .
+          skip-path: dist,node_modules,api.json
+          format: sarif
+          output: bearer-results.sarif
+          severity: critical,high
+          exit-code: 1
+
+      # Bearer writes `"results": null` when a run is clean, which the SARIF
+      # schema rejects (it requires an array). Normalize it back to `[]`.
+      - name: Normalize Bearer SARIF
+        if: always()
+        run: |
+          [ -f bearer-results.sarif ] || exit 0
+          jq '.runs |= map(.results //= [])' bearer-results.sarif > normalized.sarif
+          mv normalized.sarif bearer-results.sarif
+
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@5595ccaf912efad79be6eef63a5619ff05969be3 # v4
+        if: always()
+        with:
+          sarif_file: bearer-results.sarif
+          category: bearer
