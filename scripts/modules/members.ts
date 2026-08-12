@@ -1,6 +1,7 @@
 import { select, input, confirm } from "@inquirer/prompts";
 import { getAuthenticatedClient } from "../lib/auth.js";
 import { formatApiError } from "../lib/formatters.js";
+import { promptPageNavigation } from "../lib/pagination.js";
 import type { YesparkClient } from "../../src/index.js";
 
 async function handleListMembers(cli: YesparkClient): Promise<void> {
@@ -27,25 +28,11 @@ async function handleListMembers(cli: YesparkClient): Promise<void> {
       );
     });
 
-    const choices: Array<{ name: string; value: string }> = [];
-    if (pageNumber < totalPages) {
-      choices.push({
-        name: `➡️ Page suivante (${pageNumber + 1}/${totalPages})`,
-        value: "next",
-      });
-    }
-    if (pageNumber > 1) {
-      choices.push({
-        name: `⬅️ Page précédente (${pageNumber - 1}/${totalPages})`,
-        value: "prev",
-      });
-    }
-    choices.push({ name: `↩️ Retour au menu principal`, value: "back" });
-
-    const navAction = await select({
-      message: "Navigation membres :",
-      choices,
-    });
+    const navAction = await promptPageNavigation(
+      "Navigation membres :",
+      pageNumber,
+      totalPages,
+    );
     if (navAction === "next") pageNumber++;
     else if (navAction === "prev") pageNumber--;
     else viewing = false;

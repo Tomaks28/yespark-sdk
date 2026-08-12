@@ -1,6 +1,7 @@
 import { select } from "@inquirer/prompts";
 import { getAuthenticatedClient } from "../lib/auth.js";
 import { formatDateFr, formatApiError } from "../lib/formatters.js";
+import { promptPageNavigation } from "../lib/pagination.js";
 
 export async function handleOvertimesManagement(): Promise<void> {
   const cli = await getAuthenticatedClient();
@@ -45,26 +46,12 @@ export async function handleOvertimesManagement(): Promise<void> {
         console.log("-------------------------------------------------");
       });
 
-      const choices: Array<{ name: string; value: string }> = [];
-      if (pageNumber < totalPages)
-        choices.push({
-          name: `➡️ Page suivante (${pageNumber + 1}/${totalPages})`,
-          value: "next",
-        });
-      if (pageNumber > 1)
-        choices.push({
-          name: `⬅️ Page précédente (${pageNumber - 1}/${totalPages})`,
-          value: "prev",
-        });
-      choices.push(
-        { name: `🔍 Voir le détail d'un dépassement`, value: "detail" },
-        { name: `↩️ Retour au menu principal`, value: "back" },
+      const navAction = await promptPageNavigation(
+        "Navigation dépassements :",
+        pageNumber,
+        totalPages,
+        [{ name: `🔍 Voir le détail d'un dépassement`, value: "detail" }],
       );
-
-      const navAction = await select({
-        message: "Navigation dépassements :",
-        choices,
-      });
 
       if (navAction === "next") pageNumber++;
       else if (navAction === "prev") pageNumber--;
