@@ -5,7 +5,7 @@ import { formatDateFr, formatApiError } from "../lib/formatters.js";
 export async function handleOvertimesManagement(): Promise<void> {
   const cli = await getAuthenticatedClient();
   let pageNumber = 1;
-  let pageSize = 10;
+  const pageSize = 10;
   let viewing = true;
 
   while (viewing) {

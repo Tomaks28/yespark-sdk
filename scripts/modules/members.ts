@@ -5,7 +5,7 @@ import type { YesparkClient } from "../../src/index.js";
 
 async function handleListMembers(cli: YesparkClient): Promise<void> {
   let pageNumber = 1;
-  let pageSize = 10;
+  const pageSize = 10;
   let viewing = true;
 
   while (viewing) {

@@ -131,7 +131,7 @@ export async function handleListParkingsInArea(): Promise<void> {
   const geo = await geocodeAddress(addressStr);
   const delta = 0.02;
   let pageNumber = 1;
-  let pageSize = 10;
+  const pageSize = 10;
   let viewing = true;
 
   while (viewing) {
