@@ -8,8 +8,12 @@ import type {
 } from "../types.js";
 
 type ListQuery = OperationQuery<operations["ReservationsGetReservationsList"]>;
-type ListResult = OperationResponse<operations["ReservationsGetReservationsList"]>;
-type DetailResult = OperationResponse<operations["ReservationsGetReservationDetail"]>;
+type ListResult = OperationResponse<
+  operations["ReservationsGetReservationsList"]
+>;
+type DetailResult = OperationResponse<
+  operations["ReservationsGetReservationDetail"]
+>;
 
 // These operations were inlined under `paths` (their operationIds contained
 // spaces), so they are referenced positionally.
@@ -17,7 +21,10 @@ type ReserveOp = PathOperation<"/api/partner/reservations/reserve", "post">;
 type ReserveBody = OperationBody<ReserveOp>;
 type ReserveResult = OperationResponse<ReserveOp>;
 
-type CancelOp = PathOperation<"/api/partner/reservations/{number}/cancel", "patch">;
+type CancelOp = PathOperation<
+  "/api/partner/reservations/{number}/cancel",
+  "patch"
+>;
 type CancelResult = OperationResponse<CancelOp>;
 
 type CancelInfoOp = PathOperation<
@@ -26,7 +33,10 @@ type CancelInfoOp = PathOperation<
 >;
 type CancelInfoResult = OperationResponse<CancelInfoOp>;
 
-type ExtendOp = PathOperation<"/api/partner/reservations/{number}/extend", "patch">;
+type ExtendOp = PathOperation<
+  "/api/partner/reservations/{number}/extend",
+  "patch"
+>;
 type ExtendResult = OperationResponse<ExtendOp>;
 
 type ExtendInfoOp = PathOperation<
@@ -69,7 +79,10 @@ export class ReservationsResource {
   }
 
   /** Get cancellation information (fees, etc.) for a reservation. */
-  cancellationInfo(number: string, signal?: AbortSignal): Promise<CancelInfoResult> {
+  cancellationInfo(
+    number: string,
+    signal?: AbortSignal,
+  ): Promise<CancelInfoResult> {
     return this.client.request<CancelInfoResult>({
       method: "GET",
       path: "/api/partner/reservations/{number}/cancellation-info",

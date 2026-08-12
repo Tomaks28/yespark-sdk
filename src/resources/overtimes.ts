@@ -4,7 +4,9 @@ import type { OperationQuery, OperationResponse } from "../types.js";
 
 type ListQuery = OperationQuery<operations["OvertimesGetOvertimeList"]>;
 type ListResult = OperationResponse<operations["OvertimesGetOvertimeList"]>;
-type DetailsResult = OperationResponse<operations["OvertimesGetOvertimeDetails"]>;
+type DetailsResult = OperationResponse<
+  operations["OvertimesGetOvertimeDetails"]
+>;
 
 export class OvertimesResource {
   constructor(private readonly client: YesparkClient) {}

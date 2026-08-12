@@ -26,7 +26,9 @@ export type OperationQuery<O> = O extends { parameters: { query?: infer Q } }
   : never;
 
 /** Path parameters of an operation (`never` if it has none). */
-export type OperationPath<O> = O extends { parameters: { path: infer P } } ? P : never;
+export type OperationPath<O> = O extends { parameters: { path: infer P } }
+  ? P
+  : never;
 
 /** The `2xx` JSON response body of an operation. */
 export type OperationResponse<O> = O extends { responses: infer R }
@@ -48,12 +50,14 @@ export type MemberDetailsResponseModel = Schemas["MemberDetailsResponseModel"];
 export type MemberCreateRequestModel = Schemas["MemberCreateRequestModel"];
 export type MemberModifyRequestModel = Schemas["MemberModifyRequestModel"];
 
-export type ParkingPositionResponseModel = Schemas["ParkingPositionResponseModel"];
+export type ParkingPositionResponseModel =
+  Schemas["ParkingPositionResponseModel"];
 export type ParkingDetailResponseModel = Schemas["ParkingDetailResponseModel"];
 
 export type ReservationResponseModel = Schemas["ReservationResponseModel"];
 export type ReservationRequestModel = Schemas["ReservationRequestModel"];
-export type ReservationSearchResultModel = Schemas["ReservationSearchResultModel"];
+export type ReservationSearchResultModel =
+  Schemas["ReservationSearchResultModel"];
 
 export type SearchSpaceRequestModel = Schemas["SearchSpaceRequestModel"];
 export type SearchSpaceResponseModel = Schemas["SearchSpaceResponseModel"];
