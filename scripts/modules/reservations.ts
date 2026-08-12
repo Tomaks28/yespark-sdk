@@ -461,7 +461,7 @@ export async function handleExtendReservation(): Promise<void> {
   const cli = await getAuthenticatedClient();
   console.log("\n⏳ Prolongation d'une réservation...");
 
-  let reservations: any[] = [];
+  let reservations: any[];
   try {
     const listResponse = await cli.reservations.list({
       "pagination.pageSize": 20,
@@ -537,7 +537,7 @@ export async function handleCancelReservation(): Promise<void> {
   const cli = await getAuthenticatedClient();
   console.log("\n❌ Annulation d'une réservation...");
 
-  let reservations: any[] = [];
+  let reservations: any[];
   try {
     const listResponse = await cli.reservations.list({
       "pagination.pageSize": 20,
