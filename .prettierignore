@@ -1,0 +1,7 @@
+dist/
+node_modules/
+src/generated/
+package-lock.json
+api.json
+*.log
+.claude/

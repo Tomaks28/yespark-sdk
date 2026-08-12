@@ -1,4 +1,8 @@
-import { resolveConfig, type ResolvedConfig, type YesparkClientConfig } from "./config.js";
+import {
+  resolveConfig,
+  type ResolvedConfig,
+  type YesparkClientConfig,
+} from "./config.js";
 import { YesparkApiError, YesparkAuthError } from "./errors.js";
 import { buildPath, buildQuery } from "./http.js";
 import type { components } from "./generated/schema.js";
@@ -74,7 +78,9 @@ export class YesparkClient {
   setAccessToken(token: string, expiresInSeconds?: number): void {
     this.accessToken = token;
     this.tokenExpiresAt =
-      expiresInSeconds !== undefined ? Date.now() + expiresInSeconds * 1000 : undefined;
+      expiresInSeconds !== undefined
+        ? Date.now() + expiresInSeconds * 1000
+        : undefined;
   }
 
   /** Clear any cached token, forcing a fresh login on the next request. */
@@ -109,7 +115,8 @@ export class YesparkClient {
 
   private async performLogin(): Promise<string> {
     const creds = this.config.credentials;
-    if (!creds) throw new YesparkAuthError("No credentials configured for login.");
+    if (!creds)
+      throw new YesparkAuthError("No credentials configured for login.");
 
     const data = await this.request<LoginResponseModel>({
       method: "POST",
@@ -119,7 +126,9 @@ export class YesparkClient {
     });
 
     if (!data.accessToken) {
-      throw new YesparkAuthError("Login response did not contain an accessToken.");
+      throw new YesparkAuthError(
+        "Login response did not contain an accessToken.",
+      );
     }
     this.setAccessToken(data.accessToken, data.expiresIn);
     return data.accessToken;
@@ -134,7 +143,10 @@ export class YesparkClient {
     return this.doRequest<T>(options, false);
   }
 
-  private async doRequest<T>(options: RequestOptions, isRetry: boolean): Promise<T> {
+  private async doRequest<T>(
+    options: RequestOptions,
+    isRetry: boolean,
+  ): Promise<T> {
     const url =
       this.config.baseUrl +
       buildPath(options.path, options.pathParams) +
@@ -164,7 +176,8 @@ export class YesparkClient {
       response = await this.config.fetch(url, {
         method: options.method,
         headers,
-        body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+        body:
+          options.body !== undefined ? JSON.stringify(options.body) : undefined,
         signal,
       });
     } catch (err) {
@@ -174,7 +187,9 @@ export class YesparkClient {
           statusText: "Request timeout",
           url,
           method: options.method,
-          body: { message: `Request timed out after ${this.config.timeoutMs}ms` },
+          body: {
+            message: `Request timed out after ${this.config.timeoutMs}ms`,
+          },
         });
       }
       throw err;
@@ -225,7 +240,8 @@ async function parseBody(response: Response): Promise<unknown> {
 /** Merge multiple AbortSignals into one that aborts when any of them aborts. */
 function anySignal(signals: AbortSignal[]): AbortSignal {
   const controller = new AbortController();
-  const onAbort = (signal: AbortSignal) => () => controller.abort(signal.reason);
+  const onAbort = (signal: AbortSignal) => () =>
+    controller.abort(signal.reason);
   for (const signal of signals) {
     if (signal.aborted) {
       controller.abort(signal.reason);

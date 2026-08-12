@@ -23,7 +23,10 @@ export class YesparkApiError extends Error {
   }) {
     const parsed = params.body as ErrorResponseModel | undefined;
     const message =
-      (parsed && typeof parsed === "object" && "message" in parsed && parsed.message) ||
+      (parsed &&
+        typeof parsed === "object" &&
+        "message" in parsed &&
+        parsed.message) ||
       `Yespark API error ${params.status} ${params.statusText} on ${params.method} ${params.url}`;
     super(String(message));
     this.name = "YesparkApiError";

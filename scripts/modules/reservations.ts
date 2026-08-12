@@ -3,8 +3,28 @@ import { getAuthenticatedClient, globalConfig } from "../lib/auth.js";
 import { formatDateFr, formatApiError } from "../lib/formatters.js";
 import { geocodeAddress } from "../lib/geocode.js";
 import { getMemberDisplayName, getParkingInfo } from "../lib/cache.js";
+import { promptPageNavigation } from "../lib/pagination.js";
 import { YesparkApiError } from "../../src/errors.js";
 import type { YesparkClient } from "../../src/index.js";
+
+/** Charge les réservations encore actives, ou `null` si l'appel a échoué.
+ *
+ * L'erreur éventuelle est déjà rapportée à l'utilisateur : un `null` signifie
+ * simplement à l'appelant qu'il n'y a rien à proposer.
+ */
+async function loadActiveReservations(
+  cli: YesparkClient,
+): Promise<any[] | null> {
+  try {
+    const listResponse = await cli.reservations.list({
+      "pagination.pageSize": 20,
+    });
+    return (listResponse.results || []).filter((r) => !r.cancellationDate);
+  } catch (err) {
+    console.error(formatApiError(err));
+    return null;
+  }
+}
 
 async function renderReservationCard(
   cli: YesparkClient,
@@ -80,35 +100,21 @@ async function promptListNavigation(
   totalPages: number,
   pageSize: number,
 ): Promise<NavResult> {
-  const choices: Array<{ name: string; value: string }> = [];
-  if (pageNumber < totalPages) {
-    choices.push({
-      name: `➡️ Page suivante (${pageNumber + 1}/${totalPages})`,
-      value: "next",
-    });
-  }
-  if (pageNumber > 1) {
-    choices.push({
-      name: `⬅️ Page précédente (${pageNumber - 1}/${totalPages})`,
-      value: "prev",
-    });
-  }
-  choices.push(
-    {
-      name: `🔍 Changer de filtre (Membre / Parking)`,
-      value: "refilter",
-    },
-    {
-      name: `🔢 Modifier la taille de page (actuellement: ${pageSize})`,
-      value: "size",
-    },
-    { name: `↩️ Retour au menu principal`, value: "back" },
+  const navAction = await promptPageNavigation(
+    "Navigation dans la liste des réservations :",
+    pageNumber,
+    totalPages,
+    [
+      {
+        name: `🔍 Changer de filtre (Membre / Parking)`,
+        value: "refilter",
+      },
+      {
+        name: `🔢 Modifier la taille de page (actuellement: ${pageSize})`,
+        value: "size",
+      },
+    ],
   );
-
-  const navAction = await select({
-    message: "Navigation dans la liste des réservations :",
-    choices,
-  });
 
   if (navAction === "refilter") {
     const newFilter = await promptReservationFilter();
@@ -461,18 +467,8 @@ export async function handleExtendReservation(): Promise<void> {
   const cli = await getAuthenticatedClient();
   console.log("\n⏳ Prolongation d'une réservation...");
 
-  let reservations: any[] = [];
-  try {
-    const listResponse = await cli.reservations.list({
-      "pagination.pageSize": 20,
-    });
-    reservations = (listResponse.results || []).filter(
-      (r) => !r.cancellationDate,
-    );
-  } catch (err: any) {
-    console.error(formatApiError(err));
-    return;
-  }
+  const reservations = await loadActiveReservations(cli);
+  if (!reservations) return;
 
   if (reservations.length === 0) {
     console.log("ℹ️ Aucune réservation active à prolonger.");
@@ -537,18 +533,8 @@ export async function handleCancelReservation(): Promise<void> {
   const cli = await getAuthenticatedClient();
   console.log("\n❌ Annulation d'une réservation...");
 
-  let reservations: any[] = [];
-  try {
-    const listResponse = await cli.reservations.list({
-      "pagination.pageSize": 20,
-    });
-    reservations = (listResponse.results || []).filter(
-      (r) => !r.cancellationDate,
-    );
-  } catch (err: any) {
-    console.error(formatApiError(err));
-    return;
-  }
+  const reservations = await loadActiveReservations(cli);
+  if (!reservations) return;
 
   if (reservations.length === 0) {
     console.log("ℹ️ Aucune réservation active à annuler.");

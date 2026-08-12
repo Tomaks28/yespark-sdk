@@ -1,6 +1,10 @@
 import type { YesparkClient } from "../client.js";
 import type { operations } from "../generated/schema.js";
-import type { OperationBody, OperationQuery, OperationResponse } from "../types.js";
+import type {
+  OperationBody,
+  OperationQuery,
+  OperationResponse,
+} from "../types.js";
 
 type ListQuery = OperationQuery<operations["ParkingsGetParkingList"]>;
 type ListResult = OperationResponse<operations["ParkingsGetParkingList"]>;

@@ -9,7 +9,8 @@ export interface GlobalAuthConfig {
 }
 
 export const globalConfig: GlobalAuthConfig = {
-  environment: (process.env.YESPARK_ENV as "sandbox" | "production") || "sandbox",
+  environment:
+    (process.env.YESPARK_ENV as "sandbox" | "production") || "sandbox",
   token: process.env.YESPARK_TOKEN || "",
   email: process.env.YESPARK_EMAIL || "",
   password: process.env.YESPARK_PASSWORD || "",
@@ -52,13 +53,17 @@ export async function getAuthenticatedClient(): Promise<YesparkClient> {
     }
   }
 
-  const env: "sandbox" | "production" = globalConfig.environment === "production" ? "production" : "sandbox";
+  const env: "sandbox" | "production" =
+    globalConfig.environment === "production" ? "production" : "sandbox";
 
   const clientConfig = globalConfig.token
     ? { environment: env, token: globalConfig.token }
     : {
         environment: env,
-        credentials: { email: globalConfig.email, password: globalConfig.password },
+        credentials: {
+          email: globalConfig.email,
+          password: globalConfig.password,
+        },
       };
 
   clientInstance = new YesparkClient(clientConfig);

@@ -9,10 +9,7 @@ export {
   yespark,
 } from "./singleton.js";
 
-export {
-  YESPARK_BASE_URLS,
-  resolveConfig,
-} from "./config.js";
+export { YESPARK_BASE_URLS, resolveConfig } from "./config.js";
 export type {
   YesparkClientConfig,
   YesparkCredentials,

@@ -1,6 +1,10 @@
 import type { YesparkClient } from "../client.js";
 import type { operations } from "../generated/schema.js";
-import type { OperationBody, OperationQuery, OperationResponse } from "../types.js";
+import type {
+  OperationBody,
+  OperationQuery,
+  OperationResponse,
+} from "../types.js";
 
 type ListQuery = OperationQuery<operations["MembersGetMemberList"]>;
 type ListResult = OperationResponse<operations["MembersGetMemberList"]>;
@@ -44,7 +48,11 @@ export class MembersResource {
   }
 
   /** Update a member. */
-  update(userId: string, body: UpdateBody, signal?: AbortSignal): Promise<UpdateResult> {
+  update(
+    userId: string,
+    body: UpdateBody,
+    signal?: AbortSignal,
+  ): Promise<UpdateResult> {
     return this.client.request<UpdateResult>({
       method: "PATCH",
       path: "/api/partner/members/{userId}",

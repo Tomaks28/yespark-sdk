@@ -92,44 +92,44 @@ npm run reserve -- --email partner@example.com --password 'votre_mot_de_passe' -
 
 ### Paramètres et options CLI
 
-| Option | Description | Valeur par défaut |
-| ------ | ----------- | ----------------- |
-| `--address "<adresse>"` | Adresse ciblée | `"37 rue du Passeur de Boulogne 92130 Issy-les-Moulineaux"` |
-| `--email "<email>"` | Email du compte Yespark | Variable `YESPARK_EMAIL` |
-| `--password "<pass>"` | Mot de passe Yespark | Variable `YESPARK_PASSWORD` |
-| `--token "<token>"` | Token Bearer statique | Variable `YESPARK_TOKEN` |
-| `--env "<sandbox\|production>"` | Environnement API | `"sandbox"` |
-| `--hours <nombre>` | Durée en heures | `2` |
-| `--plate "<immatriculation>"` | Plaque d'immatriculation | `"AA-123-BB"` |
-| `--user-id "<userId>"` | ID de membre unique | Auto-généré |
-| `--non-interactive` | Exécution directe sans menu interactif | `false` |
+| Option                          | Description                            | Valeur par défaut                                           |
+| ------------------------------- | -------------------------------------- | ----------------------------------------------------------- |
+| `--address "<adresse>"`         | Adresse ciblée                         | `"37 rue du Passeur de Boulogne 92130 Issy-les-Moulineaux"` |
+| `--email "<email>"`             | Email du compte Yespark                | Variable `YESPARK_EMAIL`                                    |
+| `--password "<pass>"`           | Mot de passe Yespark                   | Variable `YESPARK_PASSWORD`                                 |
+| `--token "<token>"`             | Token Bearer statique                  | Variable `YESPARK_TOKEN`                                    |
+| `--env "<sandbox\|production>"` | Environnement API                      | `"sandbox"`                                                 |
+| `--hours <nombre>`              | Durée en heures                        | `2`                                                         |
+| `--plate "<immatriculation>"`   | Plaque d'immatriculation               | `"AA-123-BB"`                                               |
+| `--user-id "<userId>"`          | ID de membre unique                    | Auto-généré                                                 |
+| `--non-interactive`             | Exécution directe sans menu interactif | `false`                                                     |
 
 ## Configuration
 
-| Option           | Type                              | Default        |
-| ---------------- | --------------------------------- | -------------- |
-| `environment`    | `"production" \| "sandbox"`       | `"production"` |
-| `baseUrl`        | `string` (overrides environment)  | —              |
-| `token`          | `string` (static Bearer token)    | —              |
-| `credentials`    | `{ email, password }`             | —              |
-| `timeoutMs`      | `number`                          | `30000`        |
-| `fetch`          | `typeof fetch` (custom/injected)  | global `fetch` |
-| `defaultHeaders` | `Record<string, string>`          | `{}`           |
+| Option           | Type                             | Default        |
+| ---------------- | -------------------------------- | -------------- |
+| `environment`    | `"production" \| "sandbox"`      | `"production"` |
+| `baseUrl`        | `string` (overrides environment) | —              |
+| `token`          | `string` (static Bearer token)   | —              |
+| `credentials`    | `{ email, password }`            | —              |
+| `timeoutMs`      | `number`                         | `30000`        |
+| `fetch`          | `typeof fetch` (custom/injected) | global `fetch` |
+| `defaultHeaders` | `Record<string, string>`         | `{}`           |
 
 Provide **either** `token` (used directly) **or** `credentials` (client logs in
 lazily, caches the access token, and re-authenticates automatically on a 401).
 
 ## Resources
 
-| Group                    | Methods                                                                             |
-| ------------------------ | ---------------------------------------------------------------------------------- |
-| `yespark.auth`           | `login`                                                                             |
-| `yespark.members`        | `list`, `get`, `create`, `update`, `delete`                                         |
-| `yespark.parkings`       | `list`, `get`, `openDoor`                                                           |
-| `yespark.reservations`   | `list`, `get`, `reserve`, `cancel`, `cancellationInfo`, `extend`, `extensionInfo`  |
-| `yespark.overtimes`      | `list`, `get`                                                                       |
-| `yespark.accesses`       | `listForParking`                                                                    |
-| `yespark.search`         | `space`                                                                             |
+| Group                  | Methods                                                                           |
+| ---------------------- | --------------------------------------------------------------------------------- |
+| `yespark.auth`         | `login`                                                                           |
+| `yespark.members`      | `list`, `get`, `create`, `update`, `delete`                                       |
+| `yespark.parkings`     | `list`, `get`, `openDoor`                                                         |
+| `yespark.reservations` | `list`, `get`, `reserve`, `cancel`, `cancellationInfo`, `extend`, `extensionInfo` |
+| `yespark.overtimes`    | `list`, `get`                                                                     |
+| `yespark.accesses`     | `listForParking`                                                                  |
+| `yespark.search`       | `space`                                                                           |
 
 Every method returns a typed promise. Query parameters keep the API's
 dot-notation keys (e.g. `"pagination.pageNumber"`, `"locationBounds.northLatitude"`).
@@ -143,7 +143,9 @@ const spaces = await yespark.parkings.list({
   "pagination.pageSize": 20,
 });
 
-const reservation = await yespark.reservations.reserve({ /* ReservationRequestModel */ });
+const reservation = await yespark.reservations.reserve({
+  /* ReservationRequestModel */
+});
 await yespark.reservations.extend(reservation.number!, "2026-08-01T10:00:00");
 ```
 
