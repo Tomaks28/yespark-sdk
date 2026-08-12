@@ -2,6 +2,7 @@ import { select, input } from "@inquirer/prompts";
 import { getAuthenticatedClient } from "../lib/auth.js";
 import { formatApiError } from "../lib/formatters.js";
 import { geocodeAddress } from "../lib/geocode.js";
+import { promptPageNavigation } from "../lib/pagination.js";
 
 export async function handleOpenDoor(): Promise<void> {
   const cli = await getAuthenticatedClient();
@@ -37,10 +38,11 @@ export async function handleOpenDoor(): Promise<void> {
         userId = parts[1] || "";
       }
     }
-  } catch (_err: any) {
+  } catch (err) {
     console.log(
       "ℹ️ Pré-récupération des réservations non disponible, saisie manuelle requise.",
     );
+    console.log(formatApiError(err));
   }
 
   if (!parkingId) {
@@ -188,25 +190,11 @@ export async function handleListParkingsInArea(): Promise<void> {
         console.log("-------------------------------------------------");
       });
 
-      const choices: Array<{ name: string; value: string }> = [];
-      if (pageNumber < totalPages) {
-        choices.push({
-          name: `➡️ Page suivante (${pageNumber + 1}/${totalPages})`,
-          value: "next",
-        });
-      }
-      if (pageNumber > 1) {
-        choices.push({
-          name: `⬅️ Page précédente (${pageNumber - 1}/${totalPages})`,
-          value: "prev",
-        });
-      }
-      choices.push({ name: `↩️ Retour au menu principal`, value: "back" });
-
-      const navAction = await select({
-        message: "Navigation dans la liste des parkings :",
-        choices,
-      });
+      const navAction = await promptPageNavigation(
+        "Navigation dans la liste des parkings :",
+        pageNumber,
+        totalPages,
+      );
 
       if (navAction === "next") pageNumber++;
       else if (navAction === "prev") pageNumber--;
