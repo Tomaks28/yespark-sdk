@@ -5,6 +5,7 @@ Fetch-based TypeScript SDK for the **Yespark Group Partner API** (Zenpark).
 - Typed against the official OpenAPI spec (`api.json`) — types are generated, so
   they stay in sync with the contract.
 - Zero runtime dependencies — uses the native `fetch` (Node ≥ 18).
+- Ships both **ESM and CommonJS** builds — `import` and `require()` both work.
 - A configurable **singleton** for sharing one client across a project, plus the
   `YesparkClient` class for anyone needing multiple instances.
 - Bearer-token **or** email/password auth (with lazy login + auto re-auth on 401).
@@ -13,6 +14,14 @@ Fetch-based TypeScript SDK for the **Yespark Group Partner API** (Zenpark).
 
 ```bash
 npm install @tomaks28/yespark-ts-sdk
+```
+
+The package ships a dual build: ESM consumers get `dist/esm`, CommonJS
+consumers get `dist/cjs`. Both are typed.
+
+```js
+// CommonJS
+const { yespark } = require("@tomaks28/yespark-ts-sdk");
 ```
 
 ## Quick start (singleton)
@@ -197,7 +206,7 @@ import type {
 ```bash
 npm install
 npm run generate   # regenerate src/generated/schema.ts from api.json
-npm run build      # clean + generate + tsc -> dist/ (js, d.ts, and *.map files)
+npm run build      # clean + generate + tsc -> dist/esm + dist/cjs (js, d.ts, *.map)
 npm run typecheck  # type-check without emitting
 ```
 
